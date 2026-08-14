@@ -6,13 +6,14 @@ The repository contains marketplace catalogs for OpenAI clients and Claude Code 
 
 ## Install
 
-For ChatGPT and Codex, add this marketplace once:
+For ChatGPT and Codex, add this marketplace and install the plugin:
 
 ```bash
 codex plugin marketplace add doczoidberg/confbuild-plugins
+codex plugin add confbuild@confbuild
 ```
 
-Then restart the desktop app, open the Plugins Directory, select **confBuild Plugins**, and install **confBuild**.
+Restart an already-open client after installation so the new skill and MCP connection are loaded.
 
 For Claude Code:
 
