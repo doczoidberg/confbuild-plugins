@@ -15,11 +15,14 @@ Codex invokes the installed skill as `$confbuild-mcp-agent`. Claude Code namespa
 
 The public self-hosted marketplace is distributed from `doczoidberg/confbuild-plugins`. The branded installation guide is available at <https://confbuild.com/install/>.
 
-For Codex and ChatGPT, add the marketplace and then install **confBuild** from that source in the desktop Plugins Directory:
+For Codex and ChatGPT, add the marketplace and install **confBuild** from that source:
 
 ```bash
 codex plugin marketplace add doczoidberg/confbuild-plugins
+codex plugin add confbuild@confbuild
 ```
+
+Restart an already-open client after installation so the new skill and MCP connection are loaded.
 
 For Claude Code:
 
