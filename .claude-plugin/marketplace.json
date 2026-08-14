@@ -1,0 +1,16 @@
+{
+  "name": "confbuild",
+  "owner": {
+    "name": "confBuild",
+    "email": "support@confbuild.com"
+  },
+  "description": "Official confBuild plugins for AI-assisted parametric 3D design through the hosted OAuth MCP.",
+  "plugins": [
+    {
+      "name": "confbuild",
+      "source": "./plugins/confbuild",
+      "description": "Create and refine parametric 3D projects through the hosted confBuild MCP and its deterministic agent workflow.",
+      "version": "0.1.0"
+    }
+  ]
+}

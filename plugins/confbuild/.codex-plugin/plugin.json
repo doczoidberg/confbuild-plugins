@@ -1,0 +1,41 @@
+{
+  "name": "confbuild",
+  "version": "0.1.0",
+  "description": "Create and refine parametric confBuild projects through the hosted MCP with a deterministic validation and visual-review workflow.",
+  "author": {
+    "name": "confBuild",
+    "email": "support@confbuild.com",
+    "url": "https://confbuild.com/"
+  },
+  "homepage": "https://confbuild.com/docs/confbuild-mcp/",
+  "repository": "https://github.com/doczoidberg/confbuild-plugins",
+  "keywords": [
+    "confbuild",
+    "cad",
+    "3d",
+    "parametric-design",
+    "mcp"
+  ],
+  "skills": "./skills/",
+  "mcpServers": "./.mcp.json",
+  "interface": {
+    "displayName": "confBuild",
+    "shortDescription": "Parametric 3D design through confBuild MCP",
+    "longDescription": "Create, continue, validate, render, and visually refine private parametric 3D projects through the OAuth-authenticated confBuild MCP.",
+    "developerName": "confBuild",
+    "category": "Developer Tools",
+    "capabilities": [
+      "Interactive",
+      "Read",
+      "Write"
+    ],
+    "websiteURL": "https://confbuild.com/",
+    "privacyPolicyURL": "https://confbuild.com/privacy/",
+    "termsOfServiceURL": "https://confbuild.com/terms/",
+    "defaultPrompt": [
+      "Create a parametric 3D model in confBuild.",
+      "Continue this confBuild project and verify it visually."
+    ],
+    "brandColor": "#8C30F5"
+  }
+}
