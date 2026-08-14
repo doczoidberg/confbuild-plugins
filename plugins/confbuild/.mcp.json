@@ -1,0 +1,9 @@
+{
+  "mcpServers": {
+    "confbuild": {
+      "type": "http",
+      "url": "https://app.confbuild.com/mcp",
+      "oauth_resource": "https://app.confbuild.com/mcp"
+    }
+  }
+}

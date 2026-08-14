@@ -1,0 +1,15 @@
+interface:
+  display_name: "confBuild MCP Agent"
+  short_description: "Agentischer confBuild Modell- und Screenshot-Loop"
+  default_prompt: "Use $confbuild-mcp-agent to create or refine a confBuild project through the configured MCP server."
+
+dependencies:
+  tools:
+    - type: "mcp"
+      value: "confbuild"
+      description: "OAuth-authenticated confBuild project, Sheet edit, validation, and browser-render server"
+      transport: "streamable_http"
+      url: "https://app.confbuild.com/mcp"
+
+policy:
+  allow_implicit_invocation: true

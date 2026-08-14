@@ -1,0 +1,20 @@
+{
+  "name": "confbuild",
+  "interface": {
+    "displayName": "confBuild Plugins"
+  },
+  "plugins": [
+    {
+      "name": "confbuild",
+      "source": {
+        "source": "local",
+        "path": "./plugins/confbuild"
+      },
+      "policy": {
+        "installation": "AVAILABLE",
+        "authentication": "ON_INSTALL"
+      },
+      "category": "Developer Tools"
+    }
+  ]
+}
