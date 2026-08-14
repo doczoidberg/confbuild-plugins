@@ -1,7 +1,7 @@
 {
   "name": "confbuild",
-  "version": "0.1.0",
-  "description": "Create and refine parametric confBuild projects through the hosted MCP with a deterministic validation and visual-review workflow.",
+  "version": "0.3.0",
+  "description": "Create and refine parametric confBuild projects through the hosted MCP with a native-first deterministic model and visual-repair loop.",
   "author": {
     "name": "confBuild",
     "email": "support@confbuild.com",

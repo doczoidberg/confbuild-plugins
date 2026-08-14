@@ -28,10 +28,13 @@ The complete English and German walkthrough is available at [confbuild.com/insta
 
 - Remote OAuth MCP: `https://app.confbuild.com/mcp`
 - Skill: `confbuild-mcp-agent`
+- Customer model loop: acceptance planning, native part types, deterministic validation, four-view review, and targeted repair
 - Codex invocation: `$confbuild-mcp-agent`
 - Claude Code invocation: `/confbuild:confbuild-mcp-agent`
 
 No API key, local MCP server, Node.js runtime, or source checkout is required for normal use. The first MCP request opens the confBuild OAuth authorization flow.
+
+Version `0.2.0` uses the same customer skill that confBuild development installs locally. It starts with one coherent design pass, allows at most two evidence-driven repair rounds by default, and reports remaining limitations rather than looping blindly.
 
 ## Repository layout
 

@@ -7,7 +7,9 @@ This package is the distribution unit for the hosted confBuild MCP and its agent
 - `.codex-plugin/plugin.json`: Codex/ChatGPT package metadata.
 - `.claude-plugin/plugin.json`: Claude Code package metadata.
 - `.mcp.json`: shared Remote MCP connection.
-- `skills/confbuild-mcp-agent`: shared deterministic create/edit/validate/render workflow.
+- `skills/confbuild-mcp-agent`: shared native-first create/edit/validate/four-view repair workflow.
+
+The customer skill carries the portable quality principles from confBuild's internal model loop without requiring repository access or local generator scripts. It plans acceptance and assemblies before writing rows, prefers native part types, gates every commit through deterministic validation, inspects four rendered views, classifies defects before repair, and stops after a clean pass or a bounded iteration budget. Direct MCP-only clients receive the same loop inside the `confbuild_start_design_session` prompt bundle.
 
 Codex invokes the installed skill as `$confbuild-mcp-agent`. Claude Code namespaces plugin skills, so its explicit command is `/confbuild:confbuild-mcp-agent`.
 

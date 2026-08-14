@@ -1,7 +1,7 @@
 interface:
   display_name: "confBuild MCP Agent"
-  short_description: "Agentischer confBuild Modell- und Screenshot-Loop"
-  default_prompt: "Use $confbuild-mcp-agent to create or refine a confBuild project through the configured MCP server."
+  short_description: "Deterministic confBuild model and visual-review loop"
+  default_prompt: "Use $confbuild-mcp-agent to create or refine a confBuild project with the native-first validation and four-view repair loop."
 
 dependencies:
   tools:

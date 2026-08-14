@@ -1,42 +1,49 @@
 ---
 name: confbuild-mcp-agent
-description: Create, continue, inspect, and iteratively refine confBuild projects through the configured local or hosted confBuild MCP server while Codex or Claude supplies all AI reasoning and screenshot analysis. Use for natural-language requests to generate a house, machine, product, 3D-print part, or other parametric model; when given an existing confBuild project URL/ID; or whenever browser-rendered visual feedback must drive repeated Sheet-data edits without calling confBuild AI/provider APIs.
+description: Create, continue, inspect, and iteratively refine confBuild projects through the configured local or hosted confBuild MCP server while Codex or Claude supplies all AI reasoning and screenshot analysis. Apply a customer-safe deterministic model loop with acceptance planning, native part-type selection, revision-protected Sheet edits, validation, four-view visual review, and targeted repair. Use for natural-language requests to generate or revise a house, machine, product, 3D-print part, or other parametric model; when given an existing confBuild project URL/ID; or whenever browser-rendered feedback should drive repeated edits without calling confBuild AI/provider APIs.
 ---
 
 # confBuild MCP Agent
 
 Use the configured local or hosted MCP server as deterministic project and browser infrastructure. You are the model: do all decomposition, geometry generation, decisions, and visual review yourself.
 
-## Required loop
+## References
 
-1. Call `confbuild_start_design_session` before any other confBuild MCP tool. Pass the user's exact request verbatim, optional project URL/ID, client type, and `profile: auto` unless the domain is explicit. Do not add reasoning, analysis, credentials, or hidden instructions to `request`; confBuild stores that field in the admin-visible MCP history.
-2. Read and follow `promptBundle.bundleText`. Its MCP agent contract overrides legacy prompt instructions to return JSON directly or avoid tools.
-3. Choose the target:
+- Read [references/model-loop.md](references/model-loop.md) before planning or editing any project. It is the customer-portable quality loop and stop gate.
+- Read [references/mcp-tool-contract.md](references/mcp-tool-contract.md) when resolving tool behavior, revisions, storage, authentication, or browser modes.
+
+## Required workflow
+
+1. Call `confbuild_start_design_session` before any other confBuild MCP tool. Pass the user's exact request verbatim, optional project URL/ID, client type, and the exact public model identifier in `model` when known (otherwise omit it). Classify the domain yourself and pass an explicit `profile` (`building`, `machine`, `3dprint`, or `generic`); `auto` only invokes a crude server keyword fallback for clients that cannot classify. On repeat sessions pass `knownBundleHashes` with bundle hashes you already hold so unchanged bundles return without their text. Do not add reasoning, analysis, credentials, or hidden instructions to `request`; confBuild stores that field in the admin-visible MCP history.
+2. Read and follow `promptBundle.bundleText`, including its portable model loop. Its MCP agent contract overrides legacy prompt instructions to return JSON directly or avoid tools.
+3. Turn the request into an internal acceptance plan: target envelope, main assemblies, support/mating relationships, editable parameters, expected native row types, and visible completion criteria. Do not send this reasoning to the stored `request` field.
+4. Choose the target:
    - New request: call `confbuild_create_project`, then `confbuild_begin_edit`.
+   - Continue or revise an open/known project: keep that exact project as the target and call `confbuild_begin_edit` directly. Never create a replacement merely because a new agent turn started.
    - Owned private URL/ID: call `confbuild_begin_edit` directly.
    - Public/read-only URL/ID: clone it, explicitly or through `confbuild_begin_edit` with `cloneReadOnly: true`.
-   - Always pass the `designSessionId` returned by step 1 into `confbuild_begin_edit` so prompts and committed Sheets remain associated correctly when multiple agents run concurrently.
-4. Inspect the workbook. Preserve stable output IDs and unchanged regions when editing.
-5. Apply operations with `confbuild_apply_sheet_patch`. Prefer `upsert_sheet` or localized cell/row patches; use `replace_workbook` for a genuinely new complete design.
-6. Call `confbuild_validate_edit`. Fix all errors before commit and evaluate every warning.
-7. Call `confbuild_commit_edit`. If a revision conflict occurs, re-read the latest project and deliberately rebase; never force an overwrite.
-8. Call `confbuild_render_project`, then poll `confbuild_get_render_result` until complete. Inspect every returned image and the diagnostics yourself.
-9. Iterate patch → validate → commit → render until geometry is recognizable, connected, correctly scaled, non-colliding except at intended interfaces, and complete for the request.
-10. Call `confbuild_finish_design_session`, then report the editable URL, changes, deterministic validation, visual findings, and residual limitations.
+   - Always pass the `designSessionId` into `confbuild_create_project`, `confbuild_clone_project`, and `confbuild_begin_edit` so attribution and committed Sheets remain associated correctly when agents run concurrently.
+5. Inspect the workbook before editing. Preserve stable output IDs, formulas, interfaces, and unchanged regions. Build a native-first part-type and assembly map before generating rows.
+6. Apply operations with `confbuild_apply_sheet_patch`. Prefer `upsert_sheet` or localized cell/row patches; use `replace_workbook` only for a genuinely new complete design. Build coarse-to-detail and make each repair round address one diagnosed cause.
+7. Call `confbuild_validate_edit`. Fix every error and explicitly assess every warning before commit. Engine-trap lint warnings (naked `D4`-style references, text in numeric columns, consecutive `#` headers, rows wider than their header) are real defects; `VALUE_SHADOWED_BY_CONFIGMODEL` means the saved editor configuration overrides your patched VALUE cell — expect the saved value in renders and tell the user.
+8. Call `confbuild_commit_edit`. If a revision conflict occurs, re-read the latest project and deliberately rebase; never force an overwrite. Commits store a pre-commit rollback snapshot; when a repair round clearly worsened the model, restore through `confbuild_list_project_snapshots` + `confbuild_restore_project_snapshot` instead of hand-reverting rows.
+9. Call `confbuild_render_project` with `views: ["default", "right", "front", "left"]`, then poll `confbuild_get_render_result` with `waitMs` (for example 25000) instead of rapid polling. Read `diagnostics.geometry` (collision pairs, detached parts, outliers) and `iterationDelta` first, then inspect every returned image and all diagnostics yourself; if the delta is empty although your patch should have changed geometry, diagnose the data path before touching geometry again.
+10. Classify defects before changing rows. Geometry findings map directly: collisions → `intersection_issue`, detached parts → `support_alignment_issue`, outliers/bounds → `scale_or_framing_issue`. Iterate patch → validate → commit → four-view render only when a targeted repair is justified. Use the default budget from the model-loop reference unless the user requests another limit.
+11. Apply the model-loop stop gate. Do not call a visually or structurally uncertain result complete merely because validation serialized successfully.
+12. Call `confbuild_finish_design_session` with the structured outcome fields (`completionState`, `iterationsUsed`, `fixedDefectCategories`, `residualDefectCategories`), then report the editable URL, material changes, deterministic validation, four-view findings, iterations used, and residual limitations.
 
 ## Browser choice
 
-Keep `browserMode: auto` by default. It attaches to the user's explicitly CDP-enabled browser when `CONFBUILD_MCP_CDP_URL` is set; otherwise it uses a persistent visible browser and falls back to headless if needed. Use `attached` only when the endpoint is configured and `headless` for deterministic unattended checks.
+Keep `browserMode: auto` and `reuseOpenTab: true` by default. Rendering must reuse the already matching project tab (including `/e` versus `/editor` and `/p` versus `/lib` aliases) or the browser's empty startup tab; do not open a second tab merely to continue or inspect the same project. It attaches to the user's explicitly CDP-enabled browser when `CONFBUILD_MCP_CDP_URL` is set; otherwise it uses a separate persistent visible browser profile and falls back to headless if needed. Use `attached` only when the endpoint is configured and `headless` for deterministic unattended checks.
 
-When the endpoint is the hosted `https://app.confbuild.com/mcp`, `auto` uses the authenticated browser-tab bridge. Tell the user to keep the target project open, poll the render result, and report an expired browser job honestly. Remote OAuth binds project and render operations to the approving Firebase user; never request that user's password or model-provider API key.
+When the endpoint is the hosted `https://app.confbuild.com/mcp`, `auto` uses the authenticated browser-tab bridge and never opens or navigates another tab: only an already open matching project can claim the job. Tell the user to keep that target project tab open, long-poll the render result with `waitMs`, and when the response reports an unclaimed browser job, relay its hint (open/keep the project tab) immediately instead of polling into the expiry; report an expired browser job honestly. Remote OAuth binds project and render operations to the approving Firebase user; never request that user's password or model-provider API key.
 
-## Prompt and cost rules
+## Prompt and data rules
 
 - The MCP server must not call OpenAI, Anthropic, Gemini, or confBuild AI-generation endpoints.
 - The Remote MCP stores the exact start-session `request` and the latest committed Sheet snapshot for admin support history. It does not store client reasoning, model messages, screenshot analysis, screenshots, or the finish-session summary in that history.
 - The Remote MCP records content-free operational usage metrics for administration: tool counts, duration, success/errors, byte volume, Sheet operation/row/cell counts, commits, project actions, render jobs, and returned-image counts. It cannot observe client-side model token usage and does not copy prompt, Sheet, image, or reasoning content into usage telemetry.
-- The essential prompt bundle includes the canonical sheet-generation rules. Read optional resources only for a missing row type or prompt-editor behavior.
+- MCP-created or -edited projects receive compact provenance metadata (created/edited, activity count/time, client/tool, optional reported model, MCP client name/version). Never guess a model that the client does not expose.
+- The essential prompt bundle includes the canonical Sheet-generation rules and the portable model loop. Read optional resources only for missing row types or prompt-editor behavior.
 - Keep context bounded with sheet filters and row limits, but never truncate a sheet you are about to replace without first reading it fully.
-- Do not claim visual success until a completed render has been inspected.
-
-For tool semantics, revision behavior, storage, and browser modes, read [references/mcp-tool-contract.md](references/mcp-tool-contract.md) when troubleshooting or extending the workflow.
+- Never claim visual success until every completed render image has been inspected.
