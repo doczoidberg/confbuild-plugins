@@ -36,8 +36,11 @@
 | Persist | `confbuild_commit_edit` | Atomic revision-protected save, pre-commit rollback snapshot, new revision. A failed validation returns the errors inline; a skipped snapshot is reported via `snapshotSkippedReason` |
 | Recover | `confbuild_list_project_snapshots` | Rollback snapshots of an owned project, newest first |
 | Recover | `confbuild_restore_project_snapshot` | Commits a stored snapshot back; the pre-restore state is snapshotted first |
-| Render | `confbuild_render_project` | Background job ID. `views` accepts `default`, `right`, `front`, `left`, `back`, `top`, `bottom`; default is the four-view review set, a single targeted view saves tokens on a re-check |
+| Render | `confbuild_render_and_wait` | PREFERRED: starts the render and long-polls it in one call; returns the completed result within `waitMs` or the running job (with unclaimed-tab hints) for follow-up polls |
+| Render | `confbuild_render_project` | Background job ID only. `views` accepts `default`, `right`, `front`, `left`, `back`, `top`, `bottom`; default is the four-view review set, a single targeted view saves tokens on a re-check |
 | Review | `confbuild_get_render_result` | Long-pollable (`waitMs`, max 120 s) multi-view image blocks plus scene/browser/geometry diagnostics and an iteration delta |
+| Search | `confbuild_find_rows` | Locates rows by cell content (substring/exact/regex, optional column filter) in an edit session or project — cheaper than reading whole sheets to find one row |
+| Resume | `confbuild_list_edit_sessions` | Lists live edit sessions (project, dirty state, commit count, expiry) so a lost `editSessionId` can be recovered instead of abandoning the session |
 | Close | `confbuild_finish_design_session` | Final URL, structured content-free outcome, closed local session state |
 
 Profile selection belongs to the MCP client: classify the request yourself and pass an explicit `profile` (`building`, `machine`, `3dprint`, `structure` for halls/frames/trusses, `furniture`, or `generic`). `auto` falls back to a server keyword heuristic intended only for clients that cannot classify. Pass `knownBundleHashes` on repeat sessions; a matching bundle returns without its text. Additionally pass `knownSectionHashes` (the `sections[].sha256` values you cached) so an updated bundle resends only its changed sections; reassemble in `includedSectionIds` order.
