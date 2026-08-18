@@ -30,8 +30,19 @@ For Claude Code:
 
 ```bash
 claude plugin marketplace add doczoidberg/confbuild-plugins
-claude plugin install confbuild@confbuild
+claude plugin install confbuild@confbuild --scope user
 ```
+
+Reload an already-open Claude Code session with `/reload-plugins`; a new session is not required. Then open `/mcp` to approve OAuth and invoke `/confbuild:confbuild-mcp-agent`.
+
+To update an existing user-scoped installation:
+
+```bash
+claude plugin marketplace update confbuild
+claude plugin update confbuild@confbuild --scope user
+```
+
+Use the scope shown by `claude plugin list --json` if the plugin was deliberately installed at project or local scope. The plugin already owns the hosted `confbuild` MCP connection. Do not add the same endpoint manually, and give repository-only developer servers a distinct name such as `confbuild-local`, because Claude gives local and project MCP definitions precedence over plugin-provided servers.
 
 The self-hosted marketplace is the public beta distribution channel. Listing in the OpenAI universal Plugins Directory and Anthropic community marketplace remains a separate review process.
 
