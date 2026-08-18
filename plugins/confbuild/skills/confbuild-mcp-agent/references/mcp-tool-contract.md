@@ -14,7 +14,7 @@
 - Commits use the authenticated owner's private Firestore path and reject a changed base revision.
 - Large workbooks use a new generation-specific chunk prefix. The project manifest and its chunks are written atomically; older project-sheet chunks are cleaned afterward.
 - Each commit stores the pre-commit workbook as a rollback snapshot in the same embedded-sheet subcollection under a dedicated scope; retention keeps the newest snapshots and prunes the rest after every commit. `snapshot: false` on commit opts out.
-- Render jobs are asynchronous so MCP client tool timeouts do not terminate browser work. `confbuild_get_render_result` accepts `waitMs` (max 30 s) and waits server-side; while a hosted job is unclaimed it reports how long it has been pending and hints when no signed-in editor tab has the project open.
+- Render jobs are asynchronous so MCP client tool timeouts do not terminate browser work. `confbuild_get_render_result` accepts `waitMs` (max 120 s — pick a value below your client's own tool timeout) and waits server-side; while a hosted job is unclaimed it reports how long it has been pending and hints when no signed-in editor tab has the project open. The hosted claim window is a fixed 10 minutes and is independent of `timeoutMs`, which only budgets the client-side wait.
 - Render diagnostics include an approximate geometry audit (BVH-confirmed collision pairs, AABB-suspected overlaps, detached parts, outliers, bounds) and the completed result carries an `iterationDelta` against the previous render of the same project.
 - Edit sessions carry the project's saved configuration state so validation can flag VALUE cells that the editor will override (`VALUE_SHADOWED_BY_CONFIGMODEL`).
 - The finish tool stores only content-free outcome enums (completion state, iteration count, fixed/residual defect categories); the free-text summary is never persisted.
@@ -29,18 +29,20 @@
 | Resolve | `confbuild_resolve_project_reference` | Private/public locator without guessed owner paths |
 | Create | `confbuild_create_project` | User-owned private project and editor URL |
 | Clone | `confbuild_clone_project` | Editable private copy of public/read-only source |
-| Inspect | `confbuild_read_project` | Hydrated workbook, optionally filtered |
-| Edit | `confbuild_begin_edit` | Edit ID, base revision, full workbook |
+| Inspect | `confbuild_read_project` | Hydrated workbook; filter by `sheetNames`, page with `startRow`/`maxRowsPerSheet` (unknown names error with the available list) |
+| Edit | `confbuild_begin_edit` | Edit ID, base revision, workbook (filter with `sheetNames`/`maxRowsPerSheet` or `summaryOnly: true` when you already read it) |
 | Patch | `confbuild_apply_sheet_patch` | In-memory workbook operations and immediate validation |
-| Gate | `confbuild_validate_edit` | Errors, warnings (incl. engine-trap lint and configmodel shadowing), row/cell/output counts, serialized size |
-| Persist | `confbuild_commit_edit` | Atomic revision-protected save, pre-commit rollback snapshot, new revision |
+| Gate | `confbuild_validate_edit` | Errors and warnings: structure, formula analysis (parse traps, `,` separators, row-1/beyond-sheet refs, cycles), SHEET:/PROJECT: reference resolution, row-type catalog check with typo suggestions, input MIN/MAX plausibility, engine-trap lint, configmodel shadowing |
+| Persist | `confbuild_commit_edit` | Atomic revision-protected save, pre-commit rollback snapshot, new revision. A failed validation returns the errors inline; a skipped snapshot is reported via `snapshotSkippedReason` |
 | Recover | `confbuild_list_project_snapshots` | Rollback snapshots of an owned project, newest first |
 | Recover | `confbuild_restore_project_snapshot` | Commits a stored snapshot back; the pre-restore state is snapshotted first |
-| Render | `confbuild_render_project` | Background job ID |
-| Review | `confbuild_get_render_result` | Long-pollable (`waitMs`) multi-view image blocks plus scene/browser/geometry diagnostics and an iteration delta |
+| Render | `confbuild_render_project` | Background job ID. `views` accepts `default`, `right`, `front`, `left`, `back`, `top`, `bottom`; default is the four-view review set, a single targeted view saves tokens on a re-check |
+| Review | `confbuild_get_render_result` | Long-pollable (`waitMs`, max 120 s) multi-view image blocks plus scene/browser/geometry diagnostics and an iteration delta |
 | Close | `confbuild_finish_design_session` | Final URL, structured content-free outcome, closed local session state |
 
-Profile selection belongs to the MCP client: classify the request yourself and pass an explicit `profile`. `auto` falls back to a server keyword heuristic intended only for clients that cannot classify. Pass `knownBundleHashes` on repeat sessions; a matching bundle returns without its text.
+Profile selection belongs to the MCP client: classify the request yourself and pass an explicit `profile` (`building`, `machine`, `3dprint`, `structure` for halls/frames/trusses, `furniture`, or `generic`). `auto` falls back to a server keyword heuristic intended only for clients that cannot classify. Pass `knownBundleHashes` on repeat sessions; a matching bundle returns without its text. Additionally pass `knownSectionHashes` (the `sections[].sha256` values you cached) so an updated bundle resends only its changed sections; reassemble in `includedSectionIds` order.
+
+Error results carry machine-readable `structuredContent` with `code`, optional `retryable`, and context (for example the current revision on `REVISION_CONFLICT`, or the available sheet names on `UNKNOWN_SHEET_NAME`). The hosted endpoint rate-limits per user (HTTP 429 with `retry-after`); long-polling with `waitMs` instead of rapid polling stays well inside the limits.
 
 Pass the start tool's `designSessionId` to `confbuild_create_project`, `confbuild_clone_project`, and `confbuild_begin_edit`. Hosted mode retains a latest-session fallback for older clients, but the explicit ID is required for correct association when one user runs concurrent agents. Pass the exact public model identifier to start-session `model` only when it is known; never infer one.
 
@@ -49,6 +51,8 @@ Pass the start tool's `designSessionId` to `confbuild_create_project`, `confbuil
 - `sheetIndex` is zero-based.
 - Rows/columns in patch arguments and A1 addresses are one-based.
 - Supported operations: replace workbook, upsert/delete/rename/show sheet, set cells, replace/insert/delete rows.
+- `replace_rows` without `count` replaces exactly as many existing rows as the replacement has — "replace rows 5–20 with 5 rows" would leave 11 old rows in place. Pass `count` (rows to remove before inserting) whenever the block shrinks or grows, e.g. `startRow: 5, count: 16, rows: [...5 rows]`.
+- Row addresses are capped (50 000): a `row: 100000` typo would otherwise silently pad the sheet with empty rows.
 
 ## Authentication
 
