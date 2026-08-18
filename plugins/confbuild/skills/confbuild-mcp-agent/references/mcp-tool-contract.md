@@ -20,7 +20,7 @@
 - With the same project open in several tabs, a per-job claim lease makes exactly one tab capture; a tab that dies mid-capture is taken over after its lease expires.
 - Edit sessions carry the project's saved configuration state so validation can flag VALUE cells that the editor will override (`VALUE_SHADOWED_BY_CONFIGMODEL`).
 - The finish tool stores only content-free outcome enums (completion state, iteration count, fixed/residual defect categories); the free-text summary is never persisted.
-- Hosted usage telemetry stores content-free operational measurements only: authenticated user/client IDs, timestamps, tool/status/error code, duration, byte counts, Sheet operation/row/cell quantities, commits, project IDs, render jobs, and returned-image counts. Detail events expire after 90 days; daily per-user aggregates remain for trends. Client-side model tokens are not observable.
+- Hosted usage telemetry stores content-free operational measurements only: authenticated user/client IDs, timestamps, tool/status/error code, duration, byte counts, Sheet operation/row/cell quantities, commits, project IDs, render/export jobs, and actual returned image/artifact blocks. Metadata-only screenshot descriptors are not counted as delivered images. Detail events expire after 90 days; daily per-user aggregates remain for trends. Client-side model tokens are not observable.
 - MCP project provenance stores created/edited state, timestamps/count, agent client, optional client-reported model, profile, and MCP client name/version. It stores no prompt, Sheet values, screenshots, responses, or reasoning.
 
 ## Main tools
@@ -43,7 +43,8 @@
 | Scope | `captureScope` (on both render tools) | `isolateOutputIds` renders only those subtrees (subpart review), `zoomToOutputIds` frames the camera on them (defaults to the isolated parts), `sectionPlane {axis, position, invert}` cuts the model open. Requires a current frontend in the rendering tab; `diagnostics.captureScopeApplied: false` means the capture ran unscoped |
 | Review | `confbuild_get_render_result` | Long-pollable (`waitMs`, max 120 s) multi-view image blocks plus scene/browser/geometry diagnostics and an iteration delta |
 | Export | `confbuild_export_project` | Starts an export through the app’s own exporters in the matching open tab: `step` (simple/complex, exact OCCT B-reps where available), `stl`, `glb`, `3mf`, `bom-json`, `bom-csv`. Complex STEP can take minutes on large models |
-| Export | `confbuild_get_export_result` | Long-polls the export job; returns artifact metadata plus the file as embedded base64 resource content up to `maxContentBytes` (default 8 MB) — the loop can end with a manufacturing artifact, not only screenshots |
+| Export | `confbuild_get_export_result` | Long-polls the export job; embeds files up to `maxContentBytes` (default 8 MB) and directs larger files to the safe chunk tool without exposing private storage paths |
+| Export | `confbuild_get_export_chunk` | Returns up to 4 MB from a completed export at `offsetBytes`; continue with `chunk.nextOffsetBytes` until `chunk.complete` |
 | Search | `confbuild_find_rows` | Locates rows by cell content (substring/exact/regex, optional column filter) in an edit session or project — cheaper than reading whole sheets to find one row |
 | Resume | `confbuild_list_edit_sessions` | Lists live edit sessions (project, dirty state, commit count, expiry) so a lost `editSessionId` can be recovered instead of abandoning the session |
 | Close | `confbuild_finish_design_session` | Final URL, structured content-free outcome, closed local session state |
@@ -66,7 +67,7 @@ Pass the start tool's `designSessionId` to `confbuild_create_project`, `confbuil
 
 The server uses the same normal user email/password path as repository Playwright automation. It reads `CONFBUILD_EMAIL`/`CONFBUILD_PASSWORD`, macOS Keychain service `codex-confbuild-playwright`, or `CONFBUILD_FIREBASE_CUSTOM_TOKEN`. It never returns credentials to the client and never defaults to a Firebase Admin service account.
 
-The hosted Remote MCP uses OAuth authorization code with PKCE S256. Consent occurs in the signed-in confBuild web app; short-lived access tokens, rotating refresh tokens, persistent sessions, project operations, and render jobs stay bound to that Firebase UID.
+The hosted Remote MCP uses OAuth authorization code with PKCE S256. Consent occurs in the signed-in confBuild web app; short-lived access tokens, rotating refresh tokens, persistent sessions, project operations, and render jobs stay bound to that Firebase UID. Tools additionally enforce the granted scopes: `mcp` for the protocol/prompt surface, `projects:read` for project/session reads, `projects:write` for mutations, and `render` for render/export jobs and artifact delivery. Starting a render or export requires both `projects:read` and `render`.
 
 ## Browser modes
 
