@@ -15,7 +15,7 @@ Codex invokes the installed skill as `$confbuild-mcp-agent`. Claude Code namespa
 
 ## Install from the confBuild marketplace
 
-The public self-hosted marketplace is distributed from `doczoidberg/confbuild-plugins`. The branded installation guide is available at <https://confbuild.com/install/>.
+The public self-hosted marketplace is distributed from `doczoidberg/confbuild-plugins`. The installation and setup guide is available at <https://confbuild.com/docs/confbuild-mcp-setup/>.
 
 For Codex and ChatGPT, add the marketplace and install **confBuild** from that source:
 
