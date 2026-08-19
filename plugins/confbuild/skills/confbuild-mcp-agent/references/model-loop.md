@@ -80,6 +80,8 @@ Commit only a coherent revision. On a conflict, re-read and rebase the intended 
 
 Request `default`, `right`, `front`, and `left` views. Poll with a `waitMs` long-poll instead of rapid repeated calls. Hosted jobs use server-side Chromium by default; surface the open-tab hint only when the response explicitly reports that the authenticated browser fallback is unclaimed.
 
+Heavy models can exceed the server-side execution window. A `HEADLESS_EXECUTION_DEADLINE` or `HEADLESS_CLAIM_TIMEOUT` code is NOT a final failure: the job stays valid for its whole expiry window and a signed-in editor tab with the project open claims and completes it within seconds. Keep long-polling the SAME job instead of starting a new render, relay the open-tab hint to the user immediately, and expect the total round trip to take several minutes in this fallback mode. When the server reports that headless rendering was skipped for a heavy project, an open editor tab is the render path from the start.
+
 Read the machine-readable evidence first, then confirm it in the images:
 
 - `diagnostics.geometry` lists BVH-confirmed collision pairs, AABB-suspected overlaps, detached parts that touch nothing, and far-outlier parts, plus model bounds. These findings are approximate: verify each against at least one view before repairing, but never ignore a confirmed collision or a detached part without an explicit explanation (an intentional gap needs a visible support path).
