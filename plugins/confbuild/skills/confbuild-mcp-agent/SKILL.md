@@ -67,6 +67,7 @@ Make the local tab exist before the first render, not after a slow one:
 
 - Call `confbuild_browser_capabilities` at the start of a render loop. It reports `preferLocalTab` and, for hosted endpoints, `renderBudget` (used, remaining, cap, whether the account is exempt).
 - If the target project is not open in the user's browser, open `https://app.confbuild.com/e/<projectId>` in a local browser tab yourself when you have browser automation available; otherwise ask the user to open it and keep it open. Say plainly why: renders then take seconds instead of minutes and consume none of their server budget.
+- A tab shows the project as it was when the tab loaded it. After every `confbuild_commit_edit`, reload that tab (or open it fresh) before rendering — otherwise the tab correctly refuses the job as outdated and the render falls back to the slower metered server. Never reload a tab the user is actively editing in without asking; in that case simply accept the server render.
 - Tell the user which path each render actually used, and surface the remaining budget when it runs low or is exhausted.
 - If the user explicitly wants server-side rendering, honor it, but state the monthly budget and how much of it is left first.
 
