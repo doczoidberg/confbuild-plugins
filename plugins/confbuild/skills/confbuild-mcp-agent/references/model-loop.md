@@ -78,7 +78,7 @@ Commit only a coherent revision. On a conflict, re-read and rebase the intended 
 
 ## 6. Review four-view visual evidence
 
-Request `default`, `right`, `front`, and `left` views. Poll with a `waitMs` long-poll instead of rapid repeated calls, and surface the unclaimed-tab hint to the user when the browser job reports that no editor tab has claimed it.
+Request `default`, `right`, `front`, and `left` views. Poll with a `waitMs` long-poll instead of rapid repeated calls. Hosted jobs use server-side Chromium by default; surface the open-tab hint only when the response explicitly reports that the authenticated browser fallback is unclaimed.
 
 Read the machine-readable evidence first, then confirm it in the images:
 
@@ -99,6 +99,19 @@ Check:
 - consistency across views rather than a result that works from one camera only;
 - for motion requests, coherent resting geometry and adequate clearance; never treat camera movement as model animation.
 
+For any model with an interior, add one render with `captureScope: { xray: true }` and judge
+it as primary evidence for everything inside a housing or enclosure: every internal part
+(liner, shaft, tank, insert, baffle) must show a named fixation feature carrying it —
+standoffs, bosses, pins, a bolted flange pair, a clamp. Coaxial zero-gap placement is still
+floating (`support_alignment_issue`). A complete machine must also show its mount interface
+to the environment (feet, base flange, clamp band with ears, or bracket with real
+through-holes) as its own bolted or clamped body, never fused into the housing.
+
+To localize a suspected defect, render the detail instead of re-reading full-scene images:
+`captureScope.zoomToOutputIds` frames the camera on the suspect parts, `isolateOutputIds`
+hides everything else, `sectionPlane` cuts the model open, and one targeted view keeps the
+round cheap. Re-render the SAME detail after the repair to prove the fix.
+
 A screenshot that looks acceptable from one view does not override a failed diagnostic or a defect visible from another view.
 
 ## 7. Diagnose before repair
@@ -115,7 +128,7 @@ Use one primary category per repair round:
 
 The geometry findings map directly: confirmed or verified collision pairs are `intersection_issue`, detached parts are `support_alignment_issue`, and outlier parts or implausible bounds are `scale_or_framing_issue`.
 
-Repair the generating formula, datum, row type, connection, or clearance—not a camera angle or unexplained one-off offset. Change one diagnosed cause per round where practical, then validate, commit, and render again.
+Repair the generating formula, datum, row type, connection, or clearance—not a camera angle or unexplained one-off offset. Change one diagnosed cause per round where practical, then validate, commit, and render again — and when the defect was localized with a `captureScope` detail render, re-render that same detail so the fix is proven at the resolution where the defect was found.
 
 ## Iteration budget
 
