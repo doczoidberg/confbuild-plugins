@@ -80,6 +80,8 @@ Commit only a coherent revision. On a conflict, re-read and rebase the intended 
 
 Request `default`, `right`, `front`, and `left` views. Poll with a `waitMs` long-poll instead of rapid repeated calls. Hosted jobs use server-side Chromium by default; surface the open-tab hint only when the response explicitly reports that the authenticated browser fallback is unclaimed.
 
+Hosted renders are routed to the user's own signed-in editor tab whenever one is open on the target project — that path is far faster, free, and unlimited. Server-side rendering is metered against a monthly per-account budget. So before the first render: open the project at `https://app.confbuild.com/e/<projectId>` in a local browser tab (or ask the user to), keep it open for the whole loop, and mention which path each render used plus the remaining budget when it gets low.
+
 Heavy models can exceed the server-side execution window. A `HEADLESS_EXECUTION_DEADLINE` or `HEADLESS_CLAIM_TIMEOUT` code is NOT a final failure: the job stays valid for its whole expiry window and a signed-in editor tab with the project open claims and completes it within seconds. Keep long-polling the SAME job instead of starting a new render, relay the open-tab hint to the user immediately, and expect the total round trip to take several minutes in this fallback mode. When the server reports that headless rendering was skipped for a heavy project, an open editor tab is the render path from the start.
 
 Read the machine-readable evidence first, then confirm it in the images:
