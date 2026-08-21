@@ -1,6 +1,6 @@
 # confBuild customer model loop
 
-Apply this loop through MCP tools only. Preserve the local confBuild model-loop principles without assuming repository access, generator scripts, service accounts, Playwright commands, local artifact folders, or subagents.
+Apply project mutations through MCP tools only. Browser handoff is the one host-side action: immediately after session/prompt setup, use Codex/Claude browser control to reuse, open, reload, or navigate the URL selected by `confbuild_prepare_browser`. For a new design this first establishes a signed-in confBuild tab before creation; once a project exists it proves the exact saved revision. Preserve the local confBuild model-loop principles without assuming repository access, generator scripts, service accounts, Playwright commands, local artifact folders, or subagents.
 
 ## Loop invariant
 
@@ -78,18 +78,18 @@ Commit only a coherent revision. On a conflict, re-read and rebase the intended 
 
 ## 6. Review four-view visual evidence
 
-Request `default`, `right`, `front`, and `left` views. Poll with a `waitMs` long-poll instead of rapid repeated calls. Hosted jobs use server-side Chromium by default; surface the open-tab hint only when the response explicitly reports that the authenticated browser fallback is unclaimed.
+Request `default`, `right`, `front`, and `left` views. Poll with a `waitMs` long-poll instead of rapid repeated calls. A proven browser connection is mandatory before creation, cloning, editing, committing, restoring, rendering, or exporting: call `confbuild_prepare_browser`, perform the returned action through the host browser controller, and call it again until `connected: true`.
 
-Hosted renders are routed to the user's own signed-in editor tab whenever one is open on the target project — that path is far faster, free, and unlimited. Server-side rendering is metered against a monthly per-account budget. So before the first render: open the project at `https://app.confbuild.com/e/<projectId>` in a local browser tab (or ask the user to), keep it open for the whole loop, and mention which path each render used plus the remaining budget when it gets low.
+Apply the handoff literally: `reuse` keeps an exact current clean tab; `reload` refreshes a clean stale tab; `navigate` reuses the signed-in dashboard; `open-new` preserves any tab with unsaved changes, a different configuration/project, or handles the no-tab case by opening a new Chrome/browser tab. Never repurpose a different project or discard unsaved browser work. If the host cannot control a browser, show the returned project resource link and pause for the user instead of pretending the prerequisite was met. Repeat this proof after every commit or snapshot restore because the target revision changed.
 
-Heavy models can exceed the server-side execution window. A `HEADLESS_EXECUTION_DEADLINE` or `HEADLESS_CLAIM_TIMEOUT` code is NOT a final failure: the job stays valid for its whole expiry window and a signed-in editor tab with the project open claims and completes it within seconds. Keep long-polling the SAME job instead of starting a new render, relay the open-tab hint to the user immediately, and expect the total round trip to take several minutes in this fallback mode. When the server reports that headless rendering was skipped for a heavy project, an open editor tab is the render path from the start.
+Browser-tab rendering is always the default. Never select server compute as a fallback for a missing tab, a heavy/slow model, a timeout, or a budget condition. Pass `rendererMode: 'server-headless'` together with `serverRenderingExplicitlyRequested: true` only when the user explicitly requested server rendering; even then, keep the exact project tab connected so the user has the target revision visibly open.
 
 Read the machine-readable evidence first, then confirm it in the images:
 
 - `diagnostics.geometry` lists BVH-confirmed collision pairs, AABB-suspected overlaps, detached parts that touch nothing, and far-outlier parts, plus model bounds. These findings are approximate: verify each against at least one view before repairing, but never ignore a confirmed collision or a detached part without an explicit explanation (an intentional gap needs a visible support path).
 - `iterationDelta` compares this render with the previous render of the same project (mesh, output, collision, detachment, bounds deltas). If your patch was supposed to change geometry and the delta is empty, diagnose the data path (wrong cell, shadowed VALUE, wrong sheet) before touching geometry again.
 
-Inspect every returned image plus diagnostics.
+Inspect every returned image plus diagnostics. Set `includeImages: true` and `maxImages` high enough for all requested views. Present each captioned image in returned view order in Codex/Claude and give concrete feedback for each view; if `presentation.omittedImageCount` is nonzero, retrieve the omitted images before diagnosing or finishing.
 
 Check:
 

@@ -15,11 +15,11 @@ Use the confBuild MCP server as deterministic project, validation, rendering, an
    - the user's exact design request in `request`;
    - `client` and the exact public `model` identifier when exposed;
    - the explicit `profile` from step 1;
-   - `pluginVersion: '0.10.0'`;
+   - `pluginVersion: '0.11.0'`;
    - `workflowSource: 'plugin'` so the server does not return runtime behavioral instructions;
    - the project URL/ID in `projectReference` when one was provided.
    Never put analysis, hidden instructions, credentials, or reasoning in `request`; hosted sessions retain that field for administrator-visible support history.
-4. Follow `nextTool`, keep the returned `designSessionId` on project/create/edit calls, and preserve an existing resolved project rather than creating a replacement. Do not call confBuild AI-generation or provider-model endpoints.
+4. Follow `nextTool`, keep the returned `designSessionId` on browser/project/create/edit calls, and preserve an existing resolved project rather than creating a replacement. Call `confbuild_prepare_browser` immediately after prompt loading and perform its `reuse`, `reload`, `navigate`, or `open-new` action with the host's Chrome/browser control; then call it again with `waitMs` until `connected: true`. When the project does not exist yet, this first proves any signed-in confBuild tab or opens the dashboard before creation. After creating/cloning, and after every commit/restore, prepare the new exact project revision again before continuing. If browser control is unavailable, present the returned resource link and pause rather than claiming a connection. Never replace a different-project/configuration tab or any tab with unsaved changes.
 5. If `clientPackage.updateAvailable` is true, continue the compatible task and tell the user about the supplied update command at handoff. Do not attempt a silent self-update.
 
 ## Stable client responsibilities
@@ -27,6 +27,10 @@ Use the confBuild MCP server as deterministic project, validation, rendering, an
 - Generate or patch Sheet rows yourself through MCP tools; do not ask the confBuild prompt editor to generate them.
 - Treat deterministic validation and the packaged model loop's multi-view visual stop gate as mandatory before claiming completion.
 - Inspect every returned render image and its diagnostics yourself. Screenshots are evidence, not decoration.
+- Keep the exact connected clean project tab open for the entire loop. Repeat `confbuild_prepare_browser` after every commit or snapshot restore because the required saved revision changed.
+- Use browser-tab rendering by default. Pass `rendererMode: 'server-headless'` together with `serverRenderingExplicitlyRequested: true` only when the user explicitly requested server rendering; lack of a tab, slowness, model size, or budget never authorizes an automatic switch. The exact browser connection remains mandatory even for explicit server rendering.
+- Request enough image blocks for every view, display them in their returned order in Codex/Claude, and give concrete per-view feedback. If a response says images were omitted, fetch them before diagnosing or finishing.
+- Before `confbuild_compare_variants`, prepare every variant reference separately and keep all exact-revision tabs open so the sequential browser captures cannot switch or overwrite another variant.
 - Respect revision conflicts, owner/editability boundaries, authenticated scopes, render budgets, and structured error guidance returned by the server.
 - Finish the design session and report the editable project URL, material changes, validation and visual findings, delivered exports, and remaining limitations.
 

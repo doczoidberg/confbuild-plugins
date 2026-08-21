@@ -10,7 +10,7 @@
       "name": "confbuild",
       "source": "./plugins/confbuild",
       "description": "Create and refine parametric 3D projects through the hosted confBuild MCP and its native-first deterministic model loop.",
-      "version": "0.10.0"
+      "version": "0.11.0"
     }
   ]
 }
