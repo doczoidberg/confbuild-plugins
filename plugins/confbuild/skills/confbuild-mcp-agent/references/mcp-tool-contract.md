@@ -2,8 +2,9 @@
 
 ## Shared customer loop
 
-- `confbuild_start_design_session` includes `references/model-loop.md` in every essential prompt bundle before the canonical Sheet-generation prompt.
-- The installed plugin skill and direct MCP-only `confbuild-design` prompt therefore use the same acceptance, native-part, validation, four-view review, repair, and stop-gate contract.
+- The installed plugin reads the packaged `references/model-loop.md` snapshot and starts sessions with `workflowSource: 'plugin'`; the server then omits runtime behavioral instructions.
+- Direct MCP-only clients receive `references/model-loop.md` inside the server's essential prompt bundle before the canonical Sheet-generation prompt.
+- Both paths therefore use the same acceptance, native-part, validation, four-view review, repair, and stop-gate contract, but only an explicit plugin release changes an installed plugin's behavioral workflow.
 - Local repository generators, Playwright artifact workflows, service accounts, and subagent requirements are intentionally outside the customer loop.
 
 ## State boundaries
@@ -27,7 +28,7 @@
 
 | Phase | Tool | Result |
 |---|---|---|
-| Orient | `confbuild_start_design_session` | Agent contract, customer model loop, generation prompts, effective profile, target/editability, next tool |
+| Orient | `confbuild_start_design_session` | Session ID, effective profile, plugin-version status, target/editability, next tool; direct MCP-only callers additionally receive the server prompt bundle |
 | Resolve | `confbuild_resolve_project_reference` | Private/public locator without guessed owner paths |
 | Create | `confbuild_create_project` | User-owned private project and editor URL |
 | Clone | `confbuild_clone_project` | Editable private copy of public/read-only source |
@@ -49,11 +50,18 @@
 | Resume | `confbuild_list_edit_sessions` | Lists live edit sessions (project, dirty state, commit count, expiry) so a lost `editSessionId` can be recovered instead of abandoning the session |
 | Close | `confbuild_finish_design_session` | Final URL, structured content-free outcome, closed local session state |
 
-Profile selection belongs to the MCP client: classify the request yourself and pass an explicit `profile` (`building`, `machine`, `3dprint`, `structure` for halls/frames/trusses, `furniture`, or `generic`). `auto` falls back to a server keyword heuristic intended only for clients that cannot classify. Pass `knownBundleHashes` on repeat sessions; a matching bundle returns without its text. Additionally pass `knownSectionHashes` (the `sections[].sha256` values you cached) so an updated bundle resends only its changed sections; reassemble in `includedSectionIds` order.
+Profile selection belongs to the MCP client: classify the request yourself and pass an explicit `profile` (`building`, `machine`, `3dprint`, `structure` for halls/frames/trusses, `furniture`, or `generic`). `auto` falls back to a server keyword heuristic intended only for clients that cannot classify. Installed plugins pass `workflowSource: 'plugin'` and receive no prompt bundle. Direct MCP-only clients keep the default `workflowSource: 'server'`; they may pass `knownBundleHashes` on repeat sessions so a matching bundle returns without its text, plus `knownSectionHashes` (the `sections[].sha256` values they cached) so an updated bundle resends only changed sections.
 
 Error results carry machine-readable `structuredContent` with `code`, optional `retryable`, and context (for example the current revision on `REVISION_CONFLICT`, or the available sheet names on `UNKNOWN_SHEET_NAME`). The hosted endpoint rate-limits per user (HTTP 429 with `retry-after`); long-polling with `waitMs` instead of rapid polling stays well inside the limits.
 
-Pass the start tool's `designSessionId` to `confbuild_create_project`, `confbuild_clone_project`, and `confbuild_begin_edit`. Hosted mode retains a latest-session fallback for older clients, but the explicit ID is required for correct association when one user runs concurrent agents. Pass the exact public model identifier to start-session `model` only when it is known; never infer one.
+Pass the start tool's `designSessionId` to `confbuild_create_project`, `confbuild_clone_project`, and `confbuild_begin_edit`. Hosted mode retains a latest-session fallback for older clients, but the explicit ID is required for correct association when one user runs concurrent agents. Pass the exact public model identifier to start-session `model` only when it is known; never infer one. Installed plugin skills also pass their bundled `pluginVersion`; the response's `clientPackage` block reports whether that version is current and supplies the host-specific update command when an update exists. Direct MCP-only clients may omit it. The server never silently changes local client files.
+
+## Project scripting and animation
+
+- Animations, camera/drone flights, pneumatic cycles, and interactive buttons live in project `scriptcode`, not Sheet rows. Read it with `confbuild_read_project` plus `includeScriptCode: true`; commit `projectPatch.scriptcode` to change it. Omit that field to preserve the script and use an empty string only to remove it.
+- The script uses the editor's global `API`: parameters/cells, object animation, scene-object lookup, registered actions, input-row `ONCLICK`, reload-safe timers, pneumatic simulation, particles, and robot helpers. Camera flights animate `__threeCamera` and `__threeControls` in a cancellable `requestAnimationFrame` loop.
+- `async function ONLOADED()` establishes a coherent resting pose and must not auto-start motion. MCP renders prove resting or deliberately committed parameter poses; continuous motion still requires a manual check in the live editor.
+- Prefer extending existing scripts and keep output IDs/object names stable. A commit syntax error persists nothing.
 
 ## Patch addressing
 
