@@ -84,7 +84,7 @@ After changing the skill, keep the plugin copy, the repository development copie
 The canonical package lives at `sheetbuild2/plugins/confbuild`; `doczoidberg/confbuild-plugins` is the customer-facing distribution repository. Prepare one aligned release from the main `sheetbuild2` repository with:
 
 ```bash
-npm run mcp:confbuild:plugin:release -- 0.9.0
+npm run mcp:confbuild:plugin:release -- 0.10.0
 ```
 
 The command applies the strict-semver version to both host manifests, the bootstrap skill, and the MCP's latest-client marker; synchronizes the repository and installed skill mirrors; copies the complete package to the adjacent `confbuild-plugins` checkout; and updates the Claude marketplace catalog version. It deliberately does not commit, push, merge, submit to an official directory, or deploy the MCP server.

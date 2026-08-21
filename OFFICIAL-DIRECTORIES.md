@@ -27,7 +27,7 @@ Submission work still required:
 - complete the generated domain-verification challenge;
 - provide a reviewer account with useful sample projects and no MFA/email/SMS gate;
 - prepare at least five positive and three negative reproducible test cases;
-- review all 26 tool schemas, annotations, and returned fields against privacy disclosures;
+- review all 29 tool schemas, annotations, and returned fields against privacy disclosures;
 - supply production listing copy, logo, category, starter prompts, regions, and release notes;
 - scan the final MCP tools and skill snapshot, fix every finding, submit, and publish only after approval.
 

@@ -15,7 +15,7 @@ Use the confBuild MCP server as deterministic project, validation, rendering, an
    - the user's exact design request in `request`;
    - `client` and the exact public `model` identifier when exposed;
    - the explicit `profile` from step 1;
-   - `pluginVersion: '0.9.0'`;
+   - `pluginVersion: '0.10.0'`;
    - `workflowSource: 'plugin'` so the server does not return runtime behavioral instructions;
    - the project URL/ID in `projectReference` when one was provided.
    Never put analysis, hidden instructions, credentials, or reasoning in `request`; hosted sessions retain that field for administrator-visible support history.
