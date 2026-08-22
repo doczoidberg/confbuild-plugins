@@ -7,6 +7,14 @@ description: Create, continue, inspect, and iteratively refine confBuild project
 
 Use the confBuild MCP server as deterministic project, validation, rendering, and export infrastructure. The connected model performs all planning, geometry decisions, and screenshot analysis.
 
+## Hard browser boundary
+
+The normal data path is always connected model → confBuild MCP tools → confBuild app/project state. All semantic project work belongs to MCP: create/clone, Sheet reads and patches, `projectPatch.scriptcode`, validation, commit, render, and export. The connected editor tab rebuilds MCP-authored revisions, performs render/screenshot jobs, and shows coherent checkpoints to the user while work is in progress.
+
+Host browser control is only a connection and tab-lifecycle transport for the exact action returned by `confbuild_prepare_browser`: `reuse`, `reload`, `navigate`, or `open-new`. During this handoff and the normal model loop, never click editor controls, type or paste project data, open or submit the AI prompt editor, invoke editor/page functions through evaluation or developer tools, or otherwise mutate project state. After the tab action, immediately return to `confbuild_prepare_browser` and the MCP `nextTool` flow.
+
+A UI fallback is outside the normal loop and must never be inferred from an MCP error, timeout, missing tab, or browser availability alone. It is allowed only when a structured MCP result establishes that the required semantic operation is unsupported, no MCP tool can perform it, and the user then explicitly approves the exact bounded UI action. Return to MCP immediately afterward. The confBuild AI prompt editor and provider-backed generation endpoints are never UI fallbacks because the connected model owns reasoning and content generation.
+
 ## Runtime bootstrap
 
 1. Classify the request as `building`, `machine`, `3dprint`, `structure`, `furniture`, or `generic`.
@@ -15,16 +23,16 @@ Use the confBuild MCP server as deterministic project, validation, rendering, an
    - the user's exact design request in `request`;
    - `client` and the exact public `model` identifier when exposed;
    - the explicit `profile` from step 1;
-   - `pluginVersion: '0.12.0'`;
+   - `pluginVersion: '0.12.1'`;
    - `workflowSource: 'plugin'` so the server does not return runtime behavioral instructions;
    - the project URL/ID in `projectReference` when one was provided.
    Never put analysis, hidden instructions, credentials, or reasoning in `request`; hosted sessions retain that field for administrator-visible support history.
-4. Follow `nextTool`, keep the returned `designSessionId` on browser/project/create/edit calls, and preserve an existing resolved project rather than creating a replacement. Call `confbuild_prepare_browser` immediately after prompt loading and perform its `reuse`, `reload`, `navigate`, or `open-new` action with the host's Chrome/browser control; then call it again with `waitMs` until `connected: true`. When the project does not exist yet, this first proves any signed-in confBuild tab or opens the dashboard before creation. After creating/cloning or restoring, prepare the exact revision again. A successful `confbuild_publish_checkpoint` with `visibleInEditor: true` already proves and updates the same clean tab in place; only run the returned browser handoff when it is false. If browser control is unavailable, present the returned resource link and pause rather than claiming a connection. Never replace a different-project/configuration tab or any tab with unsaved changes.
+4. Follow `nextTool`, keep the returned `designSessionId` on browser/project/create/edit calls, and preserve an existing resolved project rather than creating a replacement. Call `confbuild_prepare_browser` immediately after prompt loading and perform only its returned `reuse`, `reload`, `navigate`, or `open-new` tab action with the host's Chrome/browser control; then call it again with `waitMs` until `connected: true`. Do not interact with the editor UI during this handoff. When the project does not exist yet, this first proves any signed-in confBuild tab or opens the dashboard before creation. After creating/cloning or restoring, prepare the exact revision again. A successful `confbuild_publish_checkpoint` with `visibleInEditor: true` already proves and updates the same clean tab in place; only run the returned browser handoff when it is false. If browser control is unavailable, present the returned resource link and pause rather than claiming a connection. Never replace a different-project/configuration tab or any tab with unsaved changes.
 5. If `clientPackage.updateAvailable` is true, continue the compatible task and tell the user about the supplied update command at handoff. Do not attempt a silent self-update.
 
 ## Stable client responsibilities
 
-- Generate or patch Sheet rows yourself through MCP tools; do not ask the confBuild prompt editor to generate them.
+- Generate or patch Sheet rows and project `scriptcode` yourself through MCP tools. Never ask the confBuild prompt editor to generate them. Browser UI authoring is permitted only by the explicit capability-failure fallback gate above, never as a routine alternative to MCP.
 - Make long initial builds visible: create the seeded project early, then use adaptive coherent checkpoints (one for small models, usually 2–4 for medium models, assembly-boundary or 45–90-second intervals for large models). Prefer `confbuild_publish_checkpoint`; it patches, validates once, commits, and updates the connected clean tab in place. Use separate patch/validate/commit calls only for draft repair or compatibility. Never commit invalid partial geometry and do not render four views for every progress checkpoint.
 - Treat deterministic validation and the packaged model loop's multi-view visual stop gate as mandatory before claiming completion. After a checkpoint, a `diagnosticsOnly: true` render is the cheap build check: act on `outputIdAudit.rowsWithoutGeometry` and `engineWarnings` before spending a multi-view render.
 - Poll running jobs with the returned `nextToolArguments` (`waitMs` ≈ 25 s) and never start a second render/export for the same revision; a capacity error names the job ids to keep polling. Give `mutationId`s to patches/checkpoints so a retry after a client timeout is acknowledged instead of applied twice, and never issue two calls against one edit session in parallel.

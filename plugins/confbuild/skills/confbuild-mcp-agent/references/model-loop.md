@@ -1,6 +1,8 @@
 # confBuild customer model loop
 
-Apply project mutations through MCP tools only. Browser handoff is the one host-side action: immediately after session/prompt setup, use Codex/Claude browser control to reuse, open, reload, or navigate the URL selected by `confbuild_prepare_browser`. For a new design this first establishes a signed-in confBuild tab before creation; once a project exists it proves the exact saved revision. Preserve the local confBuild model-loop principles without assuming repository access, generator scripts, service accounts, Playwright commands, local artifact folders, or subagents.
+Apply project mutations through MCP tools only, including Sheet changes and project `scriptcode`. The connected confBuild tab rebuilds MCP revisions, executes render/screenshot jobs, and exposes coherent checkpoints so the user can follow progress. Host browser handoff is limited to reusing, opening, reloading, or navigating the URL selected by `confbuild_prepare_browser`, then returning to MCP. During the normal loop, never click editor controls, type or paste project content, open or submit the prompt editor, or invoke editor/page functions through browser evaluation. For a new design this first establishes a signed-in confBuild tab before creation; once a project exists it proves the exact saved revision. Preserve the local confBuild model-loop principles without assuming repository access, generator scripts, service accounts, Playwright commands, local artifact folders, or subagents.
+
+UI mutation is an exceptional, user-approved fallback—not recovery behavior the client may choose automatically. Before using it, require a structured MCP result showing that the exact semantic operation is unsupported, verify that no MCP tool can perform it, explain the bounded action, and obtain explicit user approval. An MCP error, timeout, unavailable browser, or missing tab is not enough. Return to MCP immediately after the one approved action. Never use the confBuild AI prompt editor or a provider-backed generation endpoint as a fallback.
 
 ## Loop invariant
 
@@ -82,7 +84,7 @@ Commit only a coherent revision. On a conflict, re-read and rebase the intended 
 
 ## 6. Review multi-view visual evidence (four default views, up to seven)
 
-Request `default`, `right`, `front`, and `left` views. Poll with a `waitMs` long-poll instead of rapid repeated calls. A proven browser connection is mandatory before creation, cloning, editing, committing, restoring, rendering, or exporting: call `confbuild_prepare_browser`, perform the returned action through the host browser controller, and call it again until `connected: true`.
+Request `default`, `right`, `front`, and `left` views. Poll with a `waitMs` long-poll instead of rapid repeated calls. A proven browser connection is mandatory before creation, cloning, editing, committing, restoring, rendering, or exporting: call `confbuild_prepare_browser`, perform only the returned tab action through the host browser controller, and call it again until `connected: true`. Do not use the browser controller as an editor or scripting surface.
 
 Apply the handoff literally: `reuse` keeps an exact current clean tab; `reload` refreshes a clean stale tab; `navigate` reuses the signed-in dashboard; `open-new` preserves any tab with unsaved changes, a different configuration/project, or handles the no-tab case by opening a new Chrome/browser tab. Never repurpose a different project or discard unsaved browser work. If the host cannot control a browser, show the returned project resource link and pause for the user instead of pretending the prerequisite was met. Repeat this proof after every commit or snapshot restore because the target revision changed.
 
