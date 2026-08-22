@@ -6,7 +6,7 @@ Apply project mutations through MCP tools only. Browser handoff is the one host-
 
 Each iteration must follow this evidence chain:
 
-`plan → patch → validate → commit → render four views → diagnose → targeted repair`
+`plan → patch → validate → commit → (diagnostics-only build check) → render four views (more on demand) → diagnose → targeted repair`
 
 Do not skip validation or visual review. Do not repeat an unchanged patch/render cycle.
 
@@ -50,7 +50,7 @@ Treat native-type selection as a quality requirement, not cosmetic polish. Keep 
 
 ## 4. Build coarse-to-detail
 
-For a new project, create a complete coherent workbook rather than an isolated decorative fragment. Establish in this order:
+For a new project, create the seeded project as soon as the plan and profile are known instead of generating the whole workbook while the editor remains blank. Build a complete coherent workbook rather than an isolated decorative fragment, and establish it in this order:
 
 1. inputs and key formulas;
 2. primary envelope and datum;
@@ -58,6 +58,10 @@ For a new project, create a complete coherent workbook rather than an isolated d
 4. interfaces, supports, openings, and motion clearances;
 5. recognizable native components;
 6. secondary detail, materials, labels, and presentation.
+
+For a long initial build, group that order into adaptive visible checkpoints. A small model may publish once; a medium model usually needs 2–4 stages; a very large model splits only at real assembly boundaries or after roughly 45–90 seconds of otherwise invisible work. Prefer `confbuild_publish_checkpoint` with the matching `previewStage`; it applies the patch, validates once, commits, and rebuilds the exact new revision in the connected clean editor tab without a page reload. If it returns `visibleInEditor: false`, perform the supplied browser handoff. Use separate patch/validate/commit calls when an invalid draft must be repaired before publication.
+
+Checkpoint only usable revisions: required markers, formulas, references, and already introduced assemblies must remain valid. Do not create fake placeholder cubes merely to make a checkpoint visible. These intermediate commits are a progress channel, not extra review rounds, so reserve the four-view render for the complete coarse model and for targeted repair evidence.
 
 For an existing project, use the smallest localized patch that satisfies the request. Never replace the whole workbook merely because it is easier to regenerate.
 
@@ -76,7 +80,7 @@ Before every commit:
 
 Commit only a coherent revision. On a conflict, re-read and rebase the intended patch on the latest workbook.
 
-## 6. Review four-view visual evidence
+## 6. Review multi-view visual evidence (four default views, up to seven)
 
 Request `default`, `right`, `front`, and `left` views. Poll with a `waitMs` long-poll instead of rapid repeated calls. A proven browser connection is mandatory before creation, cloning, editing, committing, restoring, rendering, or exporting: call `confbuild_prepare_browser`, perform the returned action through the host browser controller, and call it again until `connected: true`.
 
@@ -149,7 +153,7 @@ Finish only when all of these are true:
 - validation has no errors and every warning has been assessed;
 - requested assemblies and editable parameters are present;
 - output/reference counts and model bounds are plausible;
-- all four views were inspected;
+- every returned view was inspected (the four default views at minimum);
 - no unexplained floating, sinking, detachment, or unintended collision remains;
 - major recognizable parts use appropriate native row types where available;
 - the result is recognizably aligned with the request;
