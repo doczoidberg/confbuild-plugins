@@ -25,12 +25,12 @@ A UI fallback is outside the normal loop and must never be inferred from an MCP 
    - the user's exact design request in `request`;
    - `client` and the exact public `model` identifier when exposed;
    - the explicit `profile` from step 1;
-   - `pluginVersion: '0.12.2'`;
+   - `pluginVersion: '0.13.0'`;
    - `workflowSource: 'plugin'` so the server does not return runtime behavioral instructions;
    - the project URL/ID in `projectReference` when one was provided.
    Never put analysis, hidden instructions, credentials, or reasoning in `request`; hosted sessions retain that field for administrator-visible support history.
 4. Follow `nextTool`, keep the returned `designSessionId` on browser/project/create/edit calls, and preserve an existing resolved project rather than creating a replacement. Call `confbuild_prepare_browser` immediately after prompt loading and perform only its returned `reuse`, `reload`, `navigate`, or one-shot `open-new` tab action with the host's Chrome/browser control; then call it again with `waitMs` until `connected: true`. Keep the handle of the selected/opened tab and reuse that handle for every later reload or navigation; do not discover recovery by opening another tab. Do not interact with the editor UI during this handoff. When the project does not exist yet, this first proves any signed-in confBuild tab or opens the dashboard before creation. After creating/cloning or restoring, prepare the exact revision again. A successful `confbuild_publish_checkpoint` with `visibleInEditor: true` already proves and updates the same clean tab in place; only run the returned browser handoff when it is false. If browser control is unavailable, a target tab stays dirty, or an already requested tab never announces presence, present the returned resource link and pause rather than claiming a connection or opening a duplicate. Never replace a different-project/configuration tab or overwrite a tab with unsaved changes.
-5. If `clientPackage.updateAvailable` is true, continue the compatible task and tell the user about the supplied update command at handoff. Do not attempt a silent self-update.
+5. The Codex package performs a throttled marketplace refresh through its trusted `SessionStart` hook. If `clientPackage.updateAvailable` is still true, continue the compatible task and give the supplied update command only as a manual fallback at handoff. Do not run an agent-driven self-update during the design task.
 
 ## Stable client responsibilities
 

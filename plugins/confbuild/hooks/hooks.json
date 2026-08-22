@@ -1,0 +1,19 @@
+{
+  "description": "Keep the self-hosted confBuild Codex marketplace package current.",
+  "hooks": {
+    "SessionStart": [
+      {
+        "matcher": "startup|resume|clear",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "/bin/sh \"$PLUGIN_ROOT/hooks/auto-update-confbuild.sh\"",
+            "commandWindows": "powershell.exe -NoProfile -ExecutionPolicy Bypass -File \"%PLUGIN_ROOT%\\hooks\\auto-update-confbuild.ps1\"",
+            "timeout": 30,
+            "statusMessage": "Checking for confBuild updates"
+          }
+        ]
+      }
+    ]
+  }
+}

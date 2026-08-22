@@ -32,7 +32,12 @@ For an existing project, add a preservation list: sheets, output IDs, formulas, 
 
 Choose the strongest supported row type for every recognizable real-world part before writing data.
 
-- Prefer `aluprofile` and `aluconnector` for T-slot frames and joints.
+- Prefer `aluprofile` and `aluconnector` for T-slot frames and joints. `aluprofile` accepts
+  optional `startSlope` and `endSlope` degree columns for planar miter cuts on the local +Z
+  member axis: empty/0 keeps a perpendicular face, `startSlope` cuts the start face, and
+  `endSlope` cuts the end face (valid range -89..89). Keep `startPoint`/`endPoint` as the
+  face-center span; use partner-derived `trimby`/`autoconnect` cuts or subtraction rows for
+  seats, notches, and non-planar joints instead of guessing a slope.
 - Prefer `dinpart` and dedicated standard-part rows for catalog hardware.
 - Prefer `ibeam`, `squaretube`, and `roundtube` for structural members.
 - Prefer `wall`, `slab`, `door`, `window`, `roof`, `column`, and `foundation` for buildings.
@@ -51,6 +56,18 @@ Treat native-type selection as a quality requirement, not cosmetic polish. Keep 
 - Make intentional suspension visible with a bracket, cable, shaft, rail, hinge, or other support path.
 - Use stable connectors or named reference points for reusable modules and mating interfaces when supported.
 - Size moving or sliding parts to the clear opening minus an explicit clearance.
+
+## Animation control contract
+
+Every requested animation must expose two separate visible INPUT buttons: Start and Stop.
+
+- Put animation logic and both handlers in project `scriptcode`; put the two controls in INPUT rows with plain, non-awaited `ONCLICK` calls to stable handler names.
+- Registered actions may supplement the controls but never replace either visible button.
+- Make Start idempotent so repeated clicks cannot create duplicate playback, frame loops, or timers.
+- Make Stop idempotent and immediately cancel every motion resource owned by the animation, including API playback, `requestAnimationFrame` loops, and timers, while leaving a coherent current or resting pose and reload-safe cleanup.
+- After every custom animation update, call `API.renderScene(true)` before scheduling the next update. Continuous scene rendering is disabled by default: each custom frame/timer step must update scene or camera state first and then force exactly one render frame. Built-in animation/simulation helpers that already invoke their render callback satisfy this rule and need no redundant wrapper loop.
+- `ONLOADED()` may capture or restore the resting pose but must never auto-start motion. Motion begins only through Start or another explicitly requested user control.
+- Treat missing, hidden, unconnected, or non-stopping Start/Stop buttons as an incomplete animation request.
 
 ## 4. Build coarse-to-detail
 
@@ -160,6 +177,7 @@ Finish only when all of these are true:
 - every returned view was inspected (the four default views at minimum);
 - no unexplained floating, sinking, detachment, or unintended collision remains;
 - major recognizable parts use appropriate native row types where available;
+- for every requested animation, visible Start and Stop INPUT buttons exist, call working handlers, every custom scene update forces its render frame, and Stop halts the owned motion cleanly;
 - the result is recognizably aligned with the request;
 - remaining limitations are explicitly reported.
 

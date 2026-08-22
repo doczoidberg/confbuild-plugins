@@ -7,6 +7,7 @@ This package is the distribution unit for the hosted confBuild MCP and its agent
 - `.codex-plugin/plugin.json`: Codex/ChatGPT package metadata.
 - `.claude-plugin/plugin.json`: Claude Code package metadata.
 - `.mcp.json`: shared Remote MCP connection.
+- `hooks/`: trusted Codex session-start updater with a 24-hour check interval.
 - `skills/confbuild-mcp-agent`: shared native-first create/edit/validate/four-view repair workflow.
 
 The customer skill carries the portable quality principles from confBuild's internal model loop without requiring repository access or local generator scripts. It plans acceptance and assemblies before writing rows, prefers native part types, gates every commit through deterministic validation, inspects four rendered views, classifies defects before repair, and stops after a clean pass or a bounded iteration budget. Installed plugins use the reviewed workflow snapshot packaged in `skills/`; direct MCP-only clients receive the same loop inside the server prompt bundle.
@@ -163,13 +164,15 @@ codex plugin add confbuild@confbuild
 
 Restart an already-open client after installation so the new skill and MCP connection are loaded.
 
-To update an installed Codex/ChatGPT plugin from this GitHub marketplace:
+The package includes a Codex `SessionStart` hook that checks this GitHub marketplace at most once every 24 hours. Review and trust the hook once when Codex asks. Future marketplace versions are then downloaded automatically; when an update is found, start a new Codex task to guarantee that its refreshed skill and MCP package are loaded.
+
+Existing installations from before this updater was introduced need one final manual marketplace refresh to receive and trust the hook. The same command remains the troubleshooting fallback if automatic checks cannot run:
 
 ```bash
 codex plugin marketplace upgrade confbuild
 ```
 
-Start a new session after the upgrade so the refreshed skill is loaded.
+The updater is intentionally inactive for Claude Code and for installations that do not use the self-hosted `doczoidberg/confbuild-plugins` marketplace. Claude continues to use its host-native update commands below.
 
 For Claude Code:
 
@@ -221,7 +224,7 @@ After changing the skill, keep the plugin copy, the repository development copie
 The canonical package lives at `sheetbuild2/plugins/confbuild`; `doczoidberg/confbuild-plugins` is the customer-facing distribution repository. Prepare one aligned release from the main `sheetbuild2` repository with:
 
 ```bash
-npm run mcp:confbuild:plugin:release -- 0.11.0
+npm run mcp:confbuild:plugin:release -- <next-semver>
 ```
 
 The command applies the strict-semver version to both host manifests, the bootstrap skill, and the MCP's latest-client marker; synchronizes the repository and installed skill mirrors; copies the complete package to the adjacent `confbuild-plugins` checkout; and updates the Claude marketplace catalog version. It deliberately does not commit, push, merge, submit to an official directory, or deploy the MCP server.

@@ -72,10 +72,15 @@ Pass the start tool's `designSessionId` to `confbuild_create_project`, `confbuil
 
 ## Project scripting and animation
 
-- Animations, camera/drone flights, pneumatic cycles, and interactive buttons live in project `scriptcode`, not Sheet rows. Read it with `confbuild_read_project` plus `includeScriptCode: true`; commit `projectPatch.scriptcode` to change it. Omit that field to preserve the script and use an empty string only to remove it.
+- Animation logic, camera/drone flights, pneumatic cycles, and button handlers live in project `scriptcode`; their visible controls live in INPUT rows. Read the script with `confbuild_read_project` plus `includeScriptCode: true`; commit `projectPatch.scriptcode` to change it. Omit that field to preserve the script and use an empty string only to remove it.
 - Author and commit `scriptcode` through MCP only. Never type it into the editor UI or execute it through browser evaluation/developer tools as a substitute for `projectPatch.scriptcode`.
 - The script uses the editor's global `API`: parameters/cells, object animation, scene-object lookup, registered actions, input-row `ONCLICK`, reload-safe timers, pneumatic simulation, particles, and robot helpers. Camera flights animate `__threeCamera` and `__threeControls` in a cancellable `requestAnimationFrame` loop.
-- `async function ONLOADED()` establishes a coherent resting pose and must not auto-start motion. MCP renders prove resting or deliberately committed parameter poses; continuous motion still requires a manual check in the live editor.
+- Every requested animation must expose two separate visible INPUT buttons: Start and Stop. Their `ONCLICK` cells call stable `scriptcode` handlers with plain, non-awaited expressions, for example:
+  `['animation_start', 'button', 'startAnimation', '', '', 'Start Animation', true, '', '', '', 'startProjectAnimation()', '']`
+  `['animation_stop', 'button', 'stopAnimation', '', '', 'Stop Animation', true, '', '', '', 'stopProjectAnimation()', '']`
+- Registered actions may supplement these controls but never replace either visible button. Start and Stop must be idempotent: Start prevents duplicate loops/timers/playback, and Stop immediately halts all motion resources owned by the animation while leaving a coherent current or resting pose and reload-safe cleanup.
+- After every custom animation update, call `API.renderScene(true)` before scheduling the next update. Continuous scene rendering is disabled by default, so each `requestAnimationFrame`/timer step that directly changes an object, camera, controls target, robot pose, or other scene state must mutate first and then force exactly one render frame. Built-in managers such as `API.playAnimation()` already render through their per-update callback and must not be wrapped in a redundant second render loop.
+- `async function ONLOADED()` establishes a coherent resting pose and must not auto-start motion. Motion starts only from the Start button (or an additional explicitly requested control). MCP renders prove resting or deliberately committed parameter poses; continuous motion still requires a manual check in the live editor.
 - Prefer extending existing scripts and keep output IDs/object names stable. A commit syntax error persists nothing.
 
 ## Patch addressing
