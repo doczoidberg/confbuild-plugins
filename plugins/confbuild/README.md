@@ -10,7 +10,7 @@ This package is the distribution unit for the hosted confBuild MCP and its agent
 - `hooks/`: trusted Codex session-start updater with a 24-hour check interval.
 - `skills/confbuild-mcp-agent`: shared native-first create/edit/validate/four-view repair workflow.
 
-The customer skill carries the portable quality principles from confBuild's internal model loop without requiring repository access or local generator scripts. It plans acceptance and assemblies before writing rows, prefers native part types, gates every commit through deterministic validation, inspects four rendered views, classifies defects before repair, and stops after a clean pass or a bounded iteration budget. Installed plugins use the reviewed workflow snapshot packaged in `skills/`; direct MCP-only clients receive the same loop inside the server prompt bundle.
+The customer skill carries the portable quality principles from confBuild's internal Composite Model Loop without requiring repository access or local generator scripts. It first declares whether the model is one indivisible part or a composite `Main Part` plus named functional child sheets; repeated units are modeled once, parent/child parameter contracts are validated, and final diagnostics must prove the nested instances loaded. It also plans acceptance before rows, prefers native part types, gates every commit through deterministic validation, atomically saves workbook and `scriptcode` with a mandatory rollback snapshot after every published pass, inspects four rendered views, classifies defects before repair, and stops after a clean pass or a bounded iteration budget. Installed plugins use the reviewed workflow snapshot packaged in `skills/`; direct MCP-only clients receive the same loop inside the server prompt bundle.
 
 Codex invokes the installed skill as `$confbuild-mcp-agent`. Claude Code namespaces plugin skills, so its explicit command is `/confbuild:confbuild-mcp-agent`.
 
@@ -115,14 +115,16 @@ treat missing values as zero.
 
 ## Complete prompt-to-tool map
 
-You normally do not need to name tools. This table shows which natural-language request should cause the agent to use each of the **29 tools** exposed by the hosted server.
+You normally do not need to name tools. This table shows which natural-language request should cause the agent to use each of the **35 tools** exposed by the hosted server.
 
 | MCP tool | Example user prompt |
 |---|---|
 | `confbuild_start_design_session` | “Plan and build a configurable workbench with adjustable width, height, drawers, and material.” |
+| `confbuild_plan_sheet_topology` | “Plan this machine as Main Part plus reusable Drive Unit, Gantry, and Safety Guard subsheets; expose only each child’s own parameters.” |
 | `confbuild_get_prompt_sections` | “Use the machine profile and load only the geometry, assembly, and catalog rules needed for this design.” |
 | `confbuild_get_prompt_bundle` | “Before editing, show which versioned confBuild rule bundle applies to a structural-hall model.” |
 | `confbuild_list_prompt_resources` | “List the available confBuild prompt resources with their hashes so I can audit what the agent uses.” |
+| `confbuild_explain_row_type` | “Explain the exact header, example row, and placement rules for the bearing row type.” |
 | `confbuild_auth_status` | “Check whether my confBuild MCP connection is authenticated and tell me which account context is active.” |
 | `confbuild_resolve_project_reference` | “Resolve this project/configuration URL and tell me whether it is owned, public, editable, and which saved configuration it targets.” |
 | `confbuild_create_project` | “Create a new private parametric conveyor project in my confBuild account.” |
@@ -130,16 +132,20 @@ You normally do not need to name tools. This table shows which natural-language 
 | `confbuild_read_project` | “Read this project without changing it; return only Main Part and Frame plus the project script.” |
 | `confbuild_begin_edit` | “Open this owned project for a revision-protected edit and preserve the complete current workbook.” |
 | `confbuild_apply_sheet_patch` | “Change cells C2 and C5 in Main Part and add one brace row without replacing unrelated sheets.” |
+| `confbuild_publish_checkpoint` | “Apply this coherent assembly stage, validate it once, save a rollback-protected revision, and update the connected editor tab.” |
 | `confbuild_validate_edit` | “Validate the pending edit for formula errors, bad references, duplicate IDs, invalid row types, and engine traps.” |
 | `confbuild_read_edit_workbook` | “Show me the current unsaved Frame sheet from the active edit session.” |
-| `confbuild_commit_edit` | “Save the validated edit atomically, create a rollback snapshot, and rename the project to ‘Conveyor 1400’.” |
+| `confbuild_commit_edit` | “Save the validated workbook and project script atomically, require a rollback snapshot, and rename the project to ‘Conveyor 1400’.” |
 | `confbuild_list_project_snapshots` | “List the newest rollback snapshots for this project with their dates and revisions.” |
-| `confbuild_restore_project_snapshot` | “Restore the selected pre-commit snapshot as a new revision, while preserving the current state as another snapshot.” |
+| `confbuild_restore_project_snapshot` | “Restore the selected workbook-and-script snapshot as a new revision, while preserving the current state as another snapshot.” |
+| `confbuild_diff_revisions` | “Compare this rollback revision with the current workbook and report changed rows plus a content-free script hash comparison.” |
 | `confbuild_discard_edit` | “Discard my uncommitted edit session; do not change the saved project.” |
 | `confbuild_browser_capabilities` | “Tell me whether rendering will use an open browser tab or isolated server-side Chromium and which capture features are available.” |
+| `confbuild_prepare_browser` | “Connect the exact clean project revision in my signed-in confBuild tab without editing through the browser UI.” |
 | `confbuild_render_project` | “Start a background render of front, right, top, and default views and give me the job ID.” |
 | `confbuild_get_render_result` | “Wait for that render, return the images and geometry diagnostics, and compare it with the previous iteration.” |
 | `confbuild_render_and_wait` | “Render this committed project now, wait up to 90 seconds, and return four review views with diagnostics.” |
+| `confbuild_inspect_outputs` | “Inspect these output IDs with ghosted context, isolation, an automatic center section, and x-ray before deciding the repair.” |
 | `confbuild_export_project` | “Export STEP plus BOM CSV,” “create the drawing PDF and flat-pattern DXF,” or “generate cost, quote, and purchasing outputs.” |
 | `confbuild_get_export_result` | “Wait for the export job and return the file inline when it is small enough.” |
 | `confbuild_get_export_chunk` | “Download every chunk of the large completed STEP export and reassemble it without exposing private storage paths.” |
