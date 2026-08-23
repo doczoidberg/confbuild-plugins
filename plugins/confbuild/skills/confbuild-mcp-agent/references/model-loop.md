@@ -155,6 +155,9 @@ prove the same relationship in all four modes, then return to an unscoped four-v
 Unchanged evidence requires a new cause hypothesis, never acceptance. Use manual `captureScope`
 only for an extra angle or narrower follow-up.
 
+For `structure`, follow the gate's `contactPairs` joint series close-up for seating,
+hardware, clearance, end cuts, and load-path continuity; a whole-frame view is insufficient.
+
 A screenshot that looks acceptable from one view does not override a failed diagnostic or a defect visible from another view.
 
 ## 8. Diagnose before repair
