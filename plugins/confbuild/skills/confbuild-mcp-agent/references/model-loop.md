@@ -142,10 +142,10 @@ floating (`support_alignment_issue`). A complete machine must also show its moun
 to the environment (feet, base flange, clamp band with ears, or bracket with real
 through-holes) as its own bolted or clamped body, never fused into the housing.
 
-To localize a suspected defect, render the detail instead of re-reading full-scene images:
-`captureScope.zoomToOutputIds` frames the camera on the suspect parts, `isolateOutputIds`
-hides everything else, `sectionPlane` cuts the model open, and one targeted view keeps the
-round cheap. Re-render the SAME detail after the repair to prove the fix.
+Every actionable geometric finding that names output IDs must enter a detail loop before
+repair or acceptance: one targeted `captureScope.zoomToOutputIds` view, adding isolate,
+section, or x-ray only when needed. Re-render the SAME detail after repair, then return to
+an unscoped four-view pass. Unchanged evidence requires a new cause hypothesis, never acceptance.
 
 A screenshot that looks acceptable from one view does not override a failed diagnostic or a defect visible from another view.
 
@@ -167,7 +167,10 @@ Repair the generating formula, datum, row type, connection, or clearance—not a
 
 ## Iteration budget
 
-Default to one strong initial build and at most two targeted repair rounds. Exceed that budget only when the user requests more iterations or the latest evidence shows clear progress toward a specific remaining defect. Stop early on a clean pass. Do not spend another round on unchanged evidence.
+Default to one strong initial build and up to five targeted repair rounds; continue to eight
+while concrete blockers decrease. Stop on a clean pass. After one unchanged repair, zoom and
+change the cause hypothesis; after two, restore the best revision and report the residual.
+A detail-only render does not consume a repair round.
 
 If the budget ends with unresolved issues, preserve the best committed project and report the exact residual categories and evidence.
 
@@ -181,10 +184,15 @@ Finish only when all of these are true:
 - requested assemblies and editable parameters are present;
 - output/reference counts and model bounds are plausible;
 - every returned view was inspected (the four default views at minimum);
+- the final completion render is unscoped and contains `default`, `right`, `front`, and `left`;
+- the exact intersection preflight has no findings and no unverified pairs left from an exhausted, failed, or vertex-limited precise check;
 - no unexplained floating, sinking, detachment, or unintended collision remains;
 - major recognizable parts use appropriate native row types where available;
 - for every requested animation, visible Start and Stop INPUT buttons exist, call working handlers, every custom scene update forces its render frame, and Stop halts the owned motion cleanly;
 - the result is recognizably aligned with the request;
 - remaining limitations are explicitly reported.
 
-Report the project URL, iteration count, validation outcome, native types used, visual findings by view, fixed defect categories, and residual limitations. Pass the same outcome to the finish tool's structured fields (`completionState`, `iterationsUsed`, `fixedDefectCategories`, `residualDefectCategories`); they are content-free enums used for loop-quality trends.
+Report the URL, iterations, validation, native types, per-view findings, fixes, and limits. Pass
+the structured outcome fields. The server rejects `completionState: complete` for a missing,
+scoped, stale, incomplete-view, or blocked final render; follow its zoom arguments, or use
+`partial` with truthful residual categories.

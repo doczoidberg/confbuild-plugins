@@ -30,7 +30,7 @@ A UI fallback is outside the normal loop and must never be inferred from an MCP 
    - `client` and the exact public `model` identifier when exposed;
    - `sessionLabel` with the exact user-visible Codex task/thread or Claude chat name when the host exposes it; omit it when unavailable and never infer it from the design request (the editor then shows the short `designSessionId` fallback);
    - the explicit `profile` from step 1;
-   - `pluginVersion: '0.13.1'`;
+   - `pluginVersion: '0.14.0'`;
    - `workflowSource: 'plugin'` so the server does not return runtime behavioral instructions;
    - the project URL/ID in `projectReference` when one was provided.
    Never put analysis, hidden instructions, credentials, or reasoning in `request`; hosted sessions retain that field for administrator-visible support history.
@@ -42,6 +42,7 @@ A UI fallback is outside the normal loop and must never be inferred from an MCP 
 - Generate or patch Sheet rows and project `scriptcode` yourself through MCP tools. Never ask the confBuild prompt editor to generate them. Browser UI authoring is permitted only by the explicit capability-failure fallback gate above, never as a routine alternative to MCP.
 - Make long initial builds visible: create the seeded project early, then use adaptive coherent checkpoints (one for small models, usually 2–4 for medium models, assembly-boundary or 45–90-second intervals for large models). Prefer `confbuild_publish_checkpoint`; it patches, validates once, commits, and updates the connected clean tab in place. Use separate patch/validate/commit calls only for draft repair or compatibility. Never commit invalid partial geometry and do not render four views for every progress checkpoint.
 - Treat deterministic validation and the packaged model loop's multi-view visual stop gate as mandatory before claiming completion. After a checkpoint, a `diagnosticsOnly: true` render is the cheap build check: act on `outputIdAudit.rowsWithoutGeometry` and `engineWarnings` before spending a multi-view render.
+- Follow render `qualityGate` and `nextToolArguments` literally. When diagnostics name suspect output IDs, run the returned one-view `zoomToOutputIds` detail inspection, repair the generating cause, re-render the same detail, and only then run the final unscoped four-view pass. A rejected `completionState: complete` continues the repair loop; it is not a finish-tool error to bypass.
 - Poll running jobs with the returned `nextToolArguments` (`waitMs` ≈ 25 s) and never start a second render/export for the same revision; a capacity error names the job ids to keep polling. Give `mutationId`s to patches/checkpoints so a retry after a client timeout is acknowledged instead of applied twice, and never issue two calls against one edit session in parallel.
 - When a row schema is unknown, call `confbuild_explain_row_type` for that type instead of loading the whole catalog pack.
 - Inspect every returned render image and its diagnostics yourself. Screenshots are evidence, not decoration.
