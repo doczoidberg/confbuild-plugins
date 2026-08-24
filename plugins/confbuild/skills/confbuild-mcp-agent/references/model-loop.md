@@ -1,6 +1,6 @@
 # confBuild customer model loop
 
-Apply all Sheet/script mutations through MCP. The connected confBuild tab is only the exact-revision preview and capture worker: perform the `confbuild_prepare_browser` lifecycle action, then return to MCP; never author through editor controls, prompt submission, page evaluation, or developer tools. UI mutation is allowed only after a structured unsupported-capability result and explicit user approval for one bounded action.
+Apply all Sheet/script mutations through MCP. The connected confBuild tab is only the exact-revision preview, semantic-interaction, and capture worker: perform the `confbuild_prepare_browser` lifecycle action, then return to MCP; never author through editor controls, prompt submission, page evaluation, or developer tools. Exercise persisted INPUT buttons and named project/VBA-script functions or registered actions only through `confbuild_run_project_interaction`. UI mutation is allowed only after a structured unsupported-capability result and explicit user approval for one bounded action.
 
 Browser handoff is project-first and single-shot. Enumerate tabs, select the exact project/configuration regardless of focus, ignore transient URL fields, retain one handle per `designSessionId`, and issue `open-new` at most once for that target. Reuse/wait on slow or rebuilding tabs; preserve and pause on dirty tabs. Concurrent sessions keep separate handles and never mutate one edit session in parallel. Use host browser control before asking the user; the resource link is the fallback only when control fails or the one requested tab never connects. Pass exact exposed model/session labels without guessing.
 
@@ -25,6 +25,21 @@ Translate the request into a compact internal plan:
 - completion evidence visible in diagnostics or screenshots.
 
 For an existing project, add a preservation list: sheets, output IDs, formulas, interfaces, and regions that must remain unchanged. Keep this plan in client reasoning; never append it to the verbatim stored request.
+
+## Customer-facing INPUT control contract
+
+Use only these canonical INPUT control types in MCP-authored sheets:
+
+`label`, `textbox`, `slider`, `number`, `checkbox`, `radio`, `select`, `colorchooser`, `material`, `image`, `button`, `html`, `tab`, `sidebar-tab`, `expansion`, `separator`, `groupend`.
+
+- Runtime compatibility aliases such as `accordion`, `panel`, and `section` may exist in old sheets, but new MCP output always writes `expansion`. Do not emit legacy/internal controls such as `stepper`, `window`, `timer`, `produkt`, or `produktnolabel` as customer-facing inputs. `savebutton`, `exportbutton`, and `toolpathbutton` are editor presets that create ordinary `button` rows; they are not control types.
+- For value-bearing controls (`textbox`, `slider`, `number`, `checkbox`, `radio`, `select`, `colorchooser`, `material`, `image`, `html`), column C is the editable VALUE and column D is a formula that references column C of the same physical row, for example row 6 uses `=C6` or `=IF(C6<0;0;C6)`. Never use a shifted reference. `label`, `button`, and layout rows may leave D empty.
+- Prefer `slider` for bounded customer-facing numbers and always provide numeric MIN, MAX, and a positive numeric PARAMS step. Use `number` only when safe bounds are genuinely unknown or unrestricted exact entry is required. Put semicolon-separated choices in PARAMS for `select` and `radio`; use pipe-separated palette entries for `material`.
+- A `button` puts visible text in LABEL and its executable expression in ONCLICK; use a plain, non-awaited function call. VALUE may hold a stable action id. Do not put `await` in the sheet cell.
+- `tab` opens a horizontal tab page; consecutive tab pages are siblings. `sidebar-tab` has identical grouping semantics but renders a vertical icon rail. Do not mix both forms in one tab run. `expansion` opens a collapsible panel and may be nested one level inside a tab/sidebar tab; expansion siblings never nest into each other. Arbitrary deeper nesting is unsupported.
+- `groupend` closes only the innermost open group and has no cells after TYPE. A new tab closes the current tab page and nested expansion; a new expansion closes the previous sibling expansion; `OUTPUTID` closes all remaining groups. Use explicit `groupend` when ordinary controls follow a group. Blank rows do not close groups. Unmatched `groupend` rows are invalid structure.
+- Group headers put their visible title in LABEL, keep VALUE, VALIDATED, MIN, and MAX empty, and may use `icon=fa-...` in PARAMS. An expansion may combine flags such as `expanded;icon=fa-sliders-h`. `separator` is a non-interactive heading/divider and neither opens nor closes a group.
+- Keep the INPUT block contiguous. A correct miniature sequence is: row 2 `tab`, row 3 `slider` with D=`=C3`, row 4 `expansion`, row 5 `checkbox` with D=`=C5`, row 6 `groupend`, row 7 `groupend`, then a top-level control or `OUTPUTID`.
 
 ## 2. Plan Main Part and child sheets before project mutation
 
@@ -77,6 +92,7 @@ Every requested animation must expose two separate visible INPUT buttons: Start 
 - Make Stop idempotent and immediately cancel every motion resource owned by the animation, including API playback, `requestAnimationFrame` loops, and timers, while leaving a coherent current or resting pose and reload-safe cleanup.
 - After every custom animation update, call `API.renderScene(true)` before scheduling the next update. Continuous scene rendering is disabled by default: each custom frame/timer step must update scene or camera state first and then force exactly one render frame. Built-in animation/simulation helpers that already invoke their render callback satisfy this rule and need no redundant wrapper loop.
 - `ONLOADED()` may capture or restore the resting pose but must never auto-start motion. Motion begins only through Start or another explicitly requested user control.
+- After the exact revision is connected, run the Start INPUT button through `confbuild_run_project_interaction`, inspect its before/after images plus `changedOutputIds`/script diagnostics, then run the Stop button the same way and verify that motion resources stop. A bare handler may be tested with `type: 'script-function'`, and an `API.registerAction` entry with `type: 'script-action'`; arbitrary expressions remain forbidden.
 - Treat missing, hidden, unconnected, or non-stopping Start/Stop buttons as an incomplete animation request.
 
 ## 5. Build coarse-to-detail
@@ -120,7 +136,7 @@ Read the machine-readable evidence first, then confirm it in the images:
 
 - `diagnostics.geometry` lists BVH-confirmed collision pairs, AABB-suspected overlaps, detached parts that touch nothing, and far-outlier parts, plus model bounds. These findings are approximate: verify each against at least one view before repairing, but never ignore a confirmed collision or a detached part without an explicit explanation (an intentional gap needs a visible support path).
 - `iterationDelta` compares this render with the previous render of the same project (mesh, output, collision, detachment, bounds deltas). If your patch was supposed to change geometry and the delta is empty, diagnose the data path (wrong cell, shadowed VALUE, wrong sheet) before touching geometry again.
-- For composites, `diagnostics.scene.subsheetCount`/`subprojectCount` must prove that at least every planned instance loaded. A valid-looking `Main Part` with a zero or undersized nested count is a `sheet_reference_issue`, not a visual pass. Inspect named child output ids in isolation and with their immediate mounting context.
+- For composites, `diagnostics.scene.subsheets` must name every planned embedded child and report its instance output id, descendant ids, mesh count, and bounds; counts alone are insufficient. A valid-looking `Main Part` with a missing named child is a `sheet_reference_issue`, not a visual pass. Follow `qualityGate.suggestedInspectionSubsheetNames` and inspect each exact child sheet in mounting context, isolation, center section, and x-ray.
 
 Inspect every returned image plus diagnostics. Set `includeImages: true` and `maxImages` high enough for all requested views. Present each captioned image in returned view order in Codex/Claude and give concrete feedback for each view; if `presentation.omittedImageCount` is nonzero, retrieve the omitted images before diagnosing or finishing.
 
@@ -137,8 +153,10 @@ Check:
 - for motion requests, coherent resting geometry and adequate clearance; never treat camera movement as model animation.
 
 For every multi-part revision, follow the render result's exact `confbuild_inspect_outputs`
-arguments before diagnosis, repair, or acceptance. The tool produces one coherent four-image
-inspection set: (1) a zoomed opaque target with all surrounding objects ghosted, (2) the target
+arguments before diagnosis, repair, or acceptance. Every planned embedded child sheet needs its
+own revision-bound evidence via the returned `subsheetNames`, and every geometry defect pair stays
+a separate local output-id group. The tool produces one coherent four-image inspection set:
+(1) a zoomed opaque target with all surrounding objects ghosted, (2) the target
 isolated, (3) an automatic section through the target center, and (4) a zoomed x-ray. Inspect
 every image. A full-scene view alone is never sufficient evidence for a multi-part model.
 
@@ -196,10 +214,10 @@ Finish only when all of these are true:
 
 - validation has no errors and every warning has been assessed;
 - requested assemblies and editable parameters are present;
-- the declared sheet topology passes validation, every planned child is reachable, and final diagnostics prove the expected `subsheetCount`/`subprojectCount`;
+- the declared sheet topology passes validation, every planned child is reachable, and final diagnostics name every expected child in `scene.subsheets` (plus the expected subproject count);
 - output/reference counts and model bounds are plausible;
 - every returned view was inspected (the four default views at minimum);
-- every multi-part current revision has a successful `confbuild_inspect_outputs` four-image evidence set, repeated after the last repair;
+- every planned child sheet and every required local output group on the current revision has a successful `confbuild_inspect_outputs` four-image evidence set, repeated for targets affected by the last repair;
 - the final completion render is unscoped and contains `default`, `right`, `front`, and `left`;
 - the exact intersection preflight has no findings and no unverified pairs left from an exhausted, failed, or vertex-limited precise check;
 - no unexplained floating, sinking, detachment, or unintended collision remains;

@@ -1,0 +1,16 @@
+#!/bin/sh
+
+repository_root="$(git rev-parse --show-toplevel)" || exit 1
+cd "$repository_root" || exit 1
+
+# The public repository may contain only the reviewed distribution allowlist,
+# including every reachable historical blob.
+case "$2" in
+  https://github.com/doczoidberg/confbuild-plugins|https://github.com/doczoidberg/confbuild-plugins.git|git@github.com:doczoidberg/confbuild-plugins.git|ssh://git@github.com/doczoidberg/confbuild-plugins.git)
+    ;;
+  *)
+    echo "Public distribution push blocked: unexpected remote."
+    exit 1
+    ;;
+esac
+exec node scripts/check-release.mjs
