@@ -32,7 +32,7 @@ A UI fallback is outside the normal loop and must never be inferred from an MCP 
    - `client` and the exact public `model` identifier when exposed;
    - `sessionLabel` with the exact user-visible Codex task/thread or Claude chat name when the host exposes it; omit it when unavailable and never infer it from the design request (the editor then shows the short `designSessionId` fallback);
    - the explicit `profile` from step 1;
-   - `pluginVersion: '0.21.0'`;
+   - `pluginVersion: '0.23.0'`;
    - `workflowSource: 'plugin'` so the server does not return runtime behavioral instructions;
    - the project URL/ID in `projectReference` when one was provided.
    Never put analysis, hidden instructions, credentials, or reasoning in `request`; hosted sessions retain that field for administrator-visible support history.
@@ -41,6 +41,8 @@ A UI fallback is outside the normal loop and must never be inferred from an MCP 
 
 ## Stable client responsibilities
 
+- `confbuild_plan_sheet_topology` has two independent contracts: send `plan` for Main Part/child-sheet source ownership and send an explicit `manufacturingPlan` for stable product, definition, and physical occurrence identities. Never copy child-sheet boundaries blindly into `manufacturingPlan`.
+- Bind every generated physical row through valid `metadata_json`: definition, geometry, kind, process, sourcing, drawing policy, part number, and revision are local. Directly placed rows also carry `manufacturingOccurrenceId`; reusable child rows derive final part occurrences from the parent `manufacturingInstance` plus local `manufacturingGeometryRef`. Repeated instances reuse a definition id but never a final occurrence id. A returned `sheet-derived-legacy` plan is compatibility fallback, not completion-quality evidence.
 - Generate or patch Sheet rows and project `scriptcode` yourself through MCP tools. Never ask the confBuild prompt editor to generate them. Browser UI authoring is permitted only by the explicit capability-failure fallback gate above, never as a routine alternative to MCP.
 - Default user-facing numeric INPUT rows to `slider` with sensible `MIN`, `MAX`, and `PARAMS` step values. Use `number` or numeric `textbox` only for a genuine arbitrary exact-entry requirement or when safe bounds are unknown; assess every `NUMERIC_INPUT_SHOULD_USE_SLIDER` validation warning.
 - Match the Composite Model Loop's assembly structure. Group child sheets by physical serviceable unit rather than primitive type; model one repeated unit once and instantiate it through `SHEET:` rows; keep global placement in `Main Part`, local geometry around a stable mount datum in each child, and expose only that child's planned `INPUTID` values as matching columns on its parent reference row. A complex assembly flattened into `Main Part`, an orphan child, a cyclic reference, or a planned parameter missing from the parent row is incomplete even when the overview renders.
