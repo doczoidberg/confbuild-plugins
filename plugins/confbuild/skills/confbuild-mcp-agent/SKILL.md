@@ -32,7 +32,7 @@ A UI fallback is outside the normal loop and must never be inferred from an MCP 
    - `client` and the exact public `model` identifier when exposed;
    - `sessionLabel` with the exact user-visible Codex task/thread or Claude chat name when the host exposes it; omit it when unavailable and never infer it from the design request (the editor then shows the short `designSessionId` fallback);
    - the explicit `profile` from step 1;
-   - `pluginVersion: '0.24.0'`;
+   - `pluginVersion: '0.24.1'`;
    - `workflowSource: 'plugin'` so the server does not return runtime behavioral instructions;
    - the project URL/ID in `projectReference` when one was provided.
    Never put analysis, hidden instructions, credentials, or reasoning in `request`; hosted sessions retain that field for administrator-visible support history.
