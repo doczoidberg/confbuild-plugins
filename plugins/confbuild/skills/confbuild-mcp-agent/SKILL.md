@@ -32,7 +32,7 @@ A UI fallback is outside the normal loop and must never be inferred from an MCP 
    - `client` and the exact public `model` identifier when exposed;
    - `sessionLabel` with the exact user-visible Codex task/thread or Claude chat name when the host exposes it; omit it when unavailable and never infer it from the design request (the editor then shows the short `designSessionId` fallback);
    - the explicit `profile` from step 1;
-   - `pluginVersion: '0.23.0'`;
+   - `pluginVersion: '0.24.0'`;
    - `workflowSource: 'plugin'` so the server does not return runtime behavioral instructions;
    - the project URL/ID in `projectReference` when one was provided.
    Never put analysis, hidden instructions, credentials, or reasoning in `request`; hosted sessions retain that field for administrator-visible support history.
@@ -42,6 +42,7 @@ A UI fallback is outside the normal loop and must never be inferred from an MCP 
 ## Stable client responsibilities
 
 - `confbuild_plan_sheet_topology` has two independent contracts: send `plan` for Main Part/child-sheet source ownership and send an explicit `manufacturingPlan` for stable product, definition, and physical occurrence identities. Never copy child-sheet boundaries blindly into `manufacturingPlan`.
+- Machine sessions (profile `machine`) are gated: declare `machineReview` in `confbuild_plan_sheet_topology` before geometry — `safetyElementDecision` (scope-aware emergency stop: `required`, rationale, `safetyFunction`, operator-station `locations`) and `mountInterfaceDecision` (feet/base flange/clamp band/bracket with `type`, `host`, `fastening`, or `required: false` with a rationale). `completionState=complete` is refused without both (`MACHINE_REVIEW_REQUIRED`), and a required safety decision demands a native `emergencystop` row (`MACHINE_SAFETY_DEVICE_MISSING`) — never a primitive stand-in. Load the `machine-domain-guide`, `machine-parts-guide`, and `placement-conventions` prompt sections for machine targets, and verify persisted pose animations with `confbuild_validate_animation` (pose(0) no-op, pose(mid) motion, t=1 seam, reset fidelity) before claiming a working animation.
 - Bind every generated physical row through valid `metadata_json`: definition, geometry, kind, process, sourcing, drawing policy, part number, and revision are local. Directly placed rows also carry `manufacturingOccurrenceId`; reusable child rows derive final part occurrences from the parent `manufacturingInstance` plus local `manufacturingGeometryRef`. Repeated instances reuse a definition id but never a final occurrence id. A returned `sheet-derived-legacy` plan is compatibility fallback, not completion-quality evidence.
 - Generate or patch Sheet rows and project `scriptcode` yourself through MCP tools. Never ask the confBuild prompt editor to generate them. Browser UI authoring is permitted only by the explicit capability-failure fallback gate above, never as a routine alternative to MCP.
 - Default user-facing numeric INPUT rows to `slider` with sensible `MIN`, `MAX`, and `PARAMS` step values. Use `number` or numeric `textbox` only for a genuine arbitrary exact-entry requirement or when safe bounds are unknown; assess every `NUMERIC_INPUT_SHOULD_USE_SLIDER` validation warning.
