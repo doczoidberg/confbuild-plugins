@@ -204,7 +204,11 @@ while concrete blockers decrease. Stop on a clean pass. After one unchanged repa
 change the cause hypothesis; after two, restore the best revision and report the residual.
 A detail-only render does not consume a repair round.
 
-If the budget ends with unresolved issues, preserve the best committed project and report the exact residual categories and evidence.
+On budget exhaustion or stalled repairs, preserve the best committed project. Finish as `partial` with `stopReason: 'budget-exhausted'` or `'no-progress'`, last completed `finalRenderJobId`, residual categories, and `residualFindings` (category, exact outputIds, evidence: visual/diagnostic/user-reported, description, suggestedRepair). Include visual defects missed by diagnostics. Detail renders support partial reports, never whole-model completion.
+
+Present `residualReport`: what works, why the loop stopped, affected part names/IDs, confirmed versus suspected/unverified overlaps, totals/truncation, and proposed repairs. Empty preflight lists do not prove cable or thin-part clearance; BVH bounding-box overlap is not exact penetration depth. Explain intentional contacts.
+
+Ask in the user's language whether to continue for up to three targeted repair rounds; wait unless already authorized. Finish deletes design/edit state. On approval start a fresh session on the same project URL, re-read the latest revision, re-plan preserved topology, and inspect the named defects. Never replace the project or reuse deleted session ids.
 
 A bad commit is recoverable: every commit stores the pre-commit workbook and project `scriptcode` together as one rollback snapshot. Restoring that snapshot creates another normal revision and first snapshots the state being replaced, so rollback is itself undoable. Legacy workbook-only snapshots remain readable but explicitly preserve the current source code. When a repair round made the model clearly worse, restore the previous state through the snapshot tools instead of hand-reverting rows, then re-plan the repair.
 
