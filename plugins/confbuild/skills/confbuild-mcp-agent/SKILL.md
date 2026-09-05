@@ -31,10 +31,18 @@ When `connected` is not `true`, actively try to establish the connection for up 
 
 - Discover host Chrome/browser control and enumerate tabs. Reuse a matching tab; if none exists and the handoff requests `open-new`, automatically open one Chrome tab at the supplied URL (the dashboard before project creation). No user confirmation or “weiter” is needed for this safe tab action. Retain its handle; a slow connection never authorizes additional tabs.
 - Perform only the returned safe lifecycle action. Repeatedly call `confbuild_prepare_browser` with the same design session/target and `waitMs: min(25000, remainingMs)` until `connected: true` or the deadline. Retry transient MCP/network/browser-control failures within that same budget. When a call fails or returns immediately, wait up to five seconds, bounded by the remaining time, before retrying; do not busy-poll. After an uncertain open result, enumerate tabs to recover the handle before attempting anything else; never issue a second open that could duplicate it.
-- On `connected: true`, stop retrying immediately and continue the returned `nextTool` automatically. A loaded page or successful navigation alone is not connection proof. Do not create, clone, edit, render, or export before the required MCP proof.
+- On `connected: true`, stop retrying immediately and continue the returned `nextTool` automatically. A loaded page or successful navigation alone is not connection proof. Do not create or clone before browser proof; analysis/render/export require model readiness. The repair path below permits backend edits in a proven connected, clean tab while its model is unready.
 - Tell the user briefly that connection recovery is running and give an elapsed-time update about once a minute. Keep individual waits at most 25 seconds so cancellation and user messages remain responsive.
 - Stop early only for a concrete user-action blocker: missing browser capability after discovery, an explicit browser-permission denial, sign-in/OAuth consent required, unsaved changes, or a reported non-transient failure. Explain the actual blocker. A single timeout, temporary tool failure, missing heartbeat, or `connected: false` is not such a blocker.
 - At the five-minute deadline, stop retrying, preserve the tab, and report the last connection state/error and supplied link with the necessary next action. Never claim success, reset the deadline, or request “weiter” before this recovery has completed unless a concrete blocker requires the user.
+
+## Automatic model rebuilds
+
+A live browser connection and a ready model are separate states. `browserConnected: true` with `modelReady: false` means the tab exists but its scene is still rebuilding or failed; it never requests another tab. `connected: true` remains the exact-revision readiness gate for analysis, interactions, animation checks and exports.
+
+`confbuild_prepare_browser` automatically sends the semantic editor command when a clean matching tab holds stale geometry or scripts. The editor's `applyMcpCommittedProjectRevision` hook loads the saved workbook, calls `recreateModel`, and refreshes the script runtime in that same page. On `revision-updating`, keep polling automatically; no browser action, page reload, user approval, “weiter”, or “neu geladen” confirmation is needed. A “Do not reload” message protects this running update; it does not mean “ask the user to reload”. Do not call the hook yourself through browser evaluation or clicks.
+
+If the old model is broken, prepare and validate its repair through MCP. With `repairCanBeSaved: true`, begin/edit/commit may save that repair while the old model is unready; revision conflicts, rollback snapshots and protection of unsaved local work still apply. Follow the resulting editor rebuild before analysis. `visibleInEditor: false` does not undo a successful commit. Report rebuild errors from the MCP result and repair their cause; never delegate an ordinary model rebuild to the user. A truly unresponsive tab or missing rebuild capability is an explicit technical blocker after bounded recovery, not grounds for an invented reload-approval requirement.
 
 ## Runtime bootstrap
 
@@ -45,7 +53,7 @@ When `connected` is not `true`, actively try to establish the connection for up 
    - `client` and the exact public `model` identifier when exposed;
    - `sessionLabel` with the exact user-visible Codex task/thread or Claude chat name when the host exposes it; omit it when unavailable and never infer it from the design request (the editor then shows the short `designSessionId` fallback);
    - the explicit `profile` from step 1;
-   - `pluginVersion: '0.24.4'`;
+   - `pluginVersion: '0.24.5'`;
    - `workflowSource: 'plugin'` so the server does not return runtime behavioral instructions;
    - the project URL/ID in `projectReference` when one was provided.
    Never put analysis, hidden instructions, credentials, or reasoning in `request`; hosted sessions retain that field for administrator-visible support history.
