@@ -1,8 +1,8 @@
 # confBuild customer model loop
 
-Apply all Sheet/script mutations through MCP. The connected confBuild tab is only the exact-revision preview, semantic-interaction, and capture worker: perform the `confbuild_prepare_browser` lifecycle action, then return to MCP; never author through editor controls, prompt submission, page evaluation, or developer tools. Exercise persisted INPUT buttons and named project/VBA-script functions or registered actions only through `confbuild_run_project_interaction`. UI mutation is allowed only after a structured unsupported-capability result and explicit user approval for one bounded action.
+Author Sheet/script changes only through MCP. Use `confbuild_prepare_browser` for tab lifecycle, then return to MCP. Never author via editor controls, prompt submission, page evaluation or developer tools. Exercise INPUT buttons, project/VBA functions and registered actions through `confbuild_run_project_interaction`. One bounded UI mutation requires a structured unsupported-capability result and explicit user approval.
 
-Browser handoff is project-first and single-shot. Enumerate tabs, select the exact project/configuration regardless of focus, ignore transient URL fields, retain one handle per `designSessionId`, and issue `open-new` at most once for that session. MCP automatically rebuilds stale geometry/scripts through the editor hook without reloading the page or asking for approval; poll `revision-updating` until the model is ready. A validated repair may be saved in a proven clean connected tab while the old model is unready. Reuse/wait on slow or rebuilding tabs; preserve and pause on dirty tabs. Concurrent sessions keep separate handles and never mutate one edit session in parallel. Use host browser control before asking the user; apply the SKILL.md five-minute connection recovery (one 300000 ms deadline, repeated waits of at most 25000 ms, automatic one-shot Chrome tab opening when needed). Use the resource link only after that deadline or a concrete user-action blocker. Pass exact exposed model/session labels without guessing.
+Browser handoff is project-first. Enumerate and retain the exact project/configuration tab; keep one active preview per project. Follow SKILL.md Autonomous connection recovery for stalled tabs and replacement sessions. Five minutes triggers diagnosis, not a forced stop or renewed authorization. Preserve unsaved work, return to MCP after lifecycle recovery, and require exact-revision readiness before analysis. Semantic project authoring remains MCP-only.
 
 ## Loop invariant
 
@@ -82,6 +82,13 @@ Treat native-type selection as a quality requirement, not cosmetic polish. Keep 
 - Use stable connectors or named reference points for reusable modules and mating interfaces when supported.
 - Size moving or sliding parts to the clear opening minus an explicit clearance.
 
+## Furniture machining and mounting checks
+
+- Seat removable shelves on internal supports in blind side bores, never exterior through-screws; verify contact with the shelf underside.
+- Rear panels need a groove/rebate, edge engagement and retention (e.g. nails).
+- Seat hinges against cabinet/door; match cup-pocket diameter/depth and verify positive residual door thickness.
+- Verify final geometry: invisible cutters may be skipped and chained cuts may restore earlier bodies. Use operational cutters or boolean-consumed cutters; confirm every groove/pocket survives. Inspect exported geometry at mounting datums when images are inconclusive.
+
 ## Animation control contract
 
 Every requested animation must expose two separate visible INPUT buttons: Start and Stop.
@@ -106,9 +113,9 @@ For a new project, create the seeded project as soon as the plan and profile are
 5. recognizable native components;
 6. secondary detail, materials, labels, and presentation.
 
-For a long initial build, group that order into adaptive visible checkpoints. A small model may publish once; a medium model usually needs 2–4 stages; a very large model splits only at real assembly boundaries or after roughly 45–90 seconds of otherwise invisible work. Prefer `confbuild_publish_checkpoint` with the matching `previewStage`; it applies the patch, validates once, atomically saves the workbook plus project `scriptcode`, creates a mandatory pre-commit rollback snapshot, and rebuilds the exact new revision in the connected clean editor tab without a page reload. If snapshot creation fails, the checkpoint must fail without saving an unprotected project revision. If it returns `visibleInEditor: false`, perform the supplied browser handoff. Use separate patch/validate/commit calls when an invalid draft must be repaired before publication.
+Publish adaptive checkpoints: once for small models, 2–4 stages for medium models, and assembly boundaries or roughly 45–90 seconds for large builds. `confbuild_publish_checkpoint` with `previewStage` validates, atomically saves workbook + `scriptcode`, snapshots the prior revision, and rebuilds the clean connected tab without reload. Snapshot failure blocks saving. Follow the handoff when `visibleInEditor: false`. Use separate patch/validate/commit calls to repair invalid drafts before publishing.
 
-Checkpoint only usable revisions: required markers, formulas, references, and already introduced assemblies must remain valid. Do not create fake placeholder cubes merely to make a checkpoint visible. These intermediate commits are a progress channel, not extra review rounds, so reserve the four-view render for the complete coarse model and for targeted repair evidence.
+Checkpoint valid markers, formulas, references and introduced assemblies; never fake progress with placeholder cubes. Intermediate commits are progress, not review rounds. Render four views for the complete coarse model and targeted repairs.
 
 For an existing project, use the smallest localized patch that satisfies the request. Never replace the whole workbook merely because it is easier to regenerate.
 
@@ -210,7 +217,7 @@ Present `residualReport`: what works, why the loop stopped, affected part names/
 
 Ask in the user's language whether to continue for up to three targeted repair rounds; wait unless already authorized. Finish deletes design/edit state. On approval start a fresh session on the same project URL, re-read the latest revision, re-plan preserved topology, and inspect the named defects. Never replace the project or reuse deleted session ids.
 
-A bad commit is recoverable: every commit stores the pre-commit workbook and project `scriptcode` together as one rollback snapshot. Restoring that snapshot creates another normal revision and first snapshots the state being replaced, so rollback is itself undoable. Legacy workbook-only snapshots remain readable but explicitly preserve the current source code. When a repair round made the model clearly worse, restore the previous state through the snapshot tools instead of hand-reverting rows, then re-plan the repair.
+Every commit snapshots the prior workbook + `scriptcode`. Restore creates a new revision and snapshots the replaced state, making rollback undoable. Legacy workbook-only snapshots preserve current code. If a repair worsens the model, use snapshot restore rather than hand-reverting rows, then re-plan.
 
 ## Completion gate
 
@@ -234,3 +241,7 @@ Report the URL, iterations, validation, native types, per-view findings, fixes, 
 the structured outcome fields. The server rejects `completionState: complete` for a missing,
 scoped, stale, incomplete-view, or blocked final render; follow its zoom arguments, or use
 `partial` with truthful residual categories.
+
+## Persistent AI project image history
+
+Revision applies and completed renders save a project-owned PNG in Project Settings → AI history. The first frame freezes camera position, orientation, projection and dimensions; later frames reuse it independently of review views. Same-revision retries reuse the frame. Commit and render each iteration before the next mutation; retry failed captures. PNGs persist separately from expiring MCP renders. History starts with the first new capture, without retrospective images or extra client page evaluation.
