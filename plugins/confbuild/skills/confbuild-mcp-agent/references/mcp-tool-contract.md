@@ -126,3 +126,40 @@ The hosted Remote MCP uses OAuth authorization code with PKCE S256. Consent occu
 - `rendererMode: 'browser-tab'` is the render/export default. `rendererMode: 'server-headless'` plus `serverRenderingExplicitlyRequested: true` selects hosted server compute only when the user explicitly requested it; there is no automatic server fallback.
 - Local modes use `reuseOpenTab: true` by default: exact project tab, same-project route alias, then empty startup tab. A different project's tab is never repurposed. Render/export work is serialized per exact project/configuration tab, not globally, so independent project tabs can run at the same time.
 - Hosted MCP uses the host browser for lifecycle recovery and the exact-revision preview. Enumerate and retain the matching tab; follow SKILL.md Autonomous connection recovery instead of a fixed time cutoff. Never accumulate tabs, repurpose unrelated tabs, lose unsaved edits, or use editor controls/page functions for semantic authoring. On connection proof, resume the authorized task automatically.
+
+## Priced BOM and drawing schedule
+
+`confbuild_plan_sheet_topology` accepts `manufacturingPlan.deliverables` in addition
+to product, definitions and occurrences. Plan before applying prices or generating
+drawings; keep planning-only requests free of geometry replacement/export claims.
+
+- `bom`: one entry per definition with `definitionId`, positive `quantity`, `unit`
+  (`stk|m|m2|m3|kg|l`), net `unitPrice`, three-letter `currency`, `priceBasis`
+  (`unknown|estimate|user|supplier`), `source`, optional `supplier` and `notes`.
+  Unknown prices require `unitPrice:null` and `priceBasis:unknown`; known prices
+  require a source/calculation basis. Never fabricate prices, supplier links or
+  verification dates. Zero means a genuinely free item. Count physical instances
+  once, and do not price parent assemblies plus their children twice.
+- `drawings`: stable `id`, `title`, `definitionIds`, `kind`
+  (`overview|assembly|weldment|part|schedule`), `paperSize` (`A0`–`A4`), `views`,
+  `dimensions` and `notes` arrays. Bind pages to known definitions, plan necessary
+  sections/details and explicitly leave unknown tolerances/fits unresolved.
+  Purchased parts stay in assembly/schedule pages, never manufacturing part pages.
+- `assumptions`: short unresolved quantity, cost or drawing requirements.
+
+The response's `deliverableSummary` contains currency-separated known subtotals,
+unpriced definition ids, estimated-price counts and planned drawing count. It
+performs no exchange-rate conversion. The plan persists with manufacturing topology
+on project create/commit; pass `editSessionId` when revising an active edit plan.
+Read the persisted project plan before updating it and preserve unaffected entries.
+
+Planning does not assign prices to model rows. Apply known prices with sheet
+columns `price`, `currency`, `priceUnit`, `priceSource`, `priceConfidence` and
+optional evidence `priceSourceUrl`/`priceCheckedAt`; keep `metadata_json` manufacturing
+bindings intact. Do not copy a total definition quantity onto every repeated row.
+Reconcile the resulting built BOM with the plan, including stock/waste/fabrication
+assumptions. Reuse `bom-json|bom-csv|bom-xlsx`, `cost-json` and purchasing/quote exports.
+`drawing-pdf` with `drawingMode:saved` exports existing drawings; `standard` generates
+standard views, not a verified custom manufacturing drawing set. Poll exports and
+inspect results before claiming completion. Custom drawings still need the drawing
+pipeline's generation, dimension/layout review and persistence checks.
