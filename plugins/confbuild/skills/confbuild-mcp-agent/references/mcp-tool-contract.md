@@ -95,10 +95,11 @@ Pass the start tool's `designSessionId` to `confbuild_create_project`, `confbuil
 Steel members and plates are fabrication-ready when the NC data can be derived from the parametric rows, not from the mesh:
 
 - Fixed-size rolled sections carry their catalog designation in `profile` (`IPE 200`, `HEB 300`, `UPE 200`, `UPN 160`, `L 80x80x8`, `SHS 100x100x5`, `RHS 200x100x6`); only members whose size comes from formulas leave `profile` empty and give `width`/`height`/`thickness` (the NC header then uses the model dimensions and reports `STEEL_SECTION_UNKNOWN`).
-- Saw cuts: `startSlope`/`endSlope`, `jointTrim`, `autoconnect`, or `trimby … :miter`. Copes and notches: `subtraction` with a box operand. Holes: `fastenerHoleCutter` cylinders or `subtraction` with a cylinder operand, perpendicular to web, flange or plate, or the holes of `ibeamconnector` joints.
+- Saw cuts: `startSlope`/`endSlope`, `jointTrim`, `autoconnect`, or `trimby … :miter`. Copes and notches: `subtraction` with a box operand. Holes: `fastenerHoleCutter` cylinders or `subtraction` with a cylinder operand, or the holes of `ibeamconnector` joints; square holes become `BO`, tilted holes additional planes `E0`–`E9` (at most ten drilling directions per part).
 - Plates: `plate` rows, connector plates, thin steel `cube`/`extrusion` rows (≤ 80 mm). Sheet metal: `sheetmetal` with a steel material, holes as inner loops of the flat `contour`.
 - Give every member and plate a steel material (`S235JR`, `S355J2`, …); otherwise the export default grade applies.
-- Not NC-capable: mesh operands, cuts that only exist as CSG, oblique holes, holes or contours in round tubes.
+- Not NC-capable: mesh operands, cuts that only exist as CSG, holes across corners or root radii, holes or contours in round tubes.
+- The BOM keeps differently machined steel parts in separate positions (fabrication signature), so each position is one NC file. With `dstvXnc`, welded-on plates become attached parts (W/A records) of their member and BOM bolts become S records.
 - Channels (`uprofile`) need `exactChannelSection`; switch older projects with `confbuild_update_scene_settings` before building or exporting.
 - Export with `confbuild_export_project` `format: 'dstv'` (options `dstvOrder`, `dstvDrawing`, `dstvPhase`, `dstvFileNamePattern`, `dstvMarkAttachments`, `dstvXnc`, `dstvDialect`, `dstvNaming`). `confbuild_get_export_result` returns `dstvCheck`: `files`/`filesWithErrors` from the server-side NC validation, `positions` (ok/warning/error/skipped), `attention` (each position that is not ok, with its report codes) and `repairHints` per code. Repair the model for every `attention` position, export again, and report positions that stay `skipped` with their reason.
 
