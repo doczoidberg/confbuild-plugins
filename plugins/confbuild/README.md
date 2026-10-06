@@ -16,6 +16,20 @@ Codex invokes the installed skill as `$confbuild-mcp-agent`. Claude Code namespa
 
 ## What you can ask confBuild to do
 
+### Open the interactive editor
+
+In ChatGPT or a Codex host supporting MCP Apps, ask **“Open my confBuild projects.”**
+The `confbuild_open_editor` tool opens the project dashboard. Search by project
+name and click the project card; no project ID is needed. If the embedded editor
+asks you to sign in, use the same confBuild account you connected through OAuth.
+Use **Projects** to return to the dashboard and save your own edits before
+switching projects. Opening the editor alone needs no design session.
+
+The personal App registration and local `confbuild-editor` package described in
+the desktop implementation docs are a test installation, not a public Directory
+listing. Other users must connect their own account; a personal app ID must not
+be distributed as their registration.
+
 Ask for the outcome in normal language. The agent chooses the MCP tools, validates every saved change, and normally renders the result for review. Include dimensions, materials, adjustable parameters, must-keep details, and the desired downstream files whenever you know them.
 
 ### Generate a new parametric model
@@ -246,3 +260,19 @@ npm --prefix ../confbuild-plugins run check
 ```
 
 Review and publish the main repository and distribution repository independently. Deploying the hosted MCP remains a separate explicit release step; ordinary plugin publication never deploys Firebase.
+
+
+## Embedded Editor App (implementation pending activation)
+
+The source checkout now includes `confbuild_open_editor`, an MCP App resource with
+conversation-panel and global/sidebar entrypoints. It hosts the existing editor,
+including parameters, 3D interaction, saving and the same-tab MCP revision bridge.
+This package's `.mcp.json` remains the existing hosted connection; it does not by
+itself register an App UI in the desktop host. The frontend and MCP addition must
+be deployed and the HTTPS server registered/refreshed in ChatGPT developer mode
+before the new surface can be used. A local `.app.json` mapping requires the actual
+registered app ID. No production/native-host availability is claimed by this
+unreleased source change.
+
+For the activation procedure and the private local package generator, see
+`docs/confbuild-desktop-app.md` in the proprietary source checkout.
