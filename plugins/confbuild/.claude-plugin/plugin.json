@@ -1,6 +1,6 @@
 {
   "name": "confbuild",
-  "version": "0.24.12",
+  "version": "0.30.0",
   "description": "Create and refine parametric confBuild projects through the hosted MCP with a native-first deterministic model and visual-repair loop.",
   "author": {
     "name": "confBuild",
