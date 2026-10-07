@@ -101,9 +101,9 @@ If the old model is broken, prepare and validate its repair through MCP. With `r
 3. Before any other confBuild tool, call `confbuild_start_design_session` with:
    - the user's exact design request in `request`;
    - `client` and the exact public `model` identifier when exposed;
-   - `sessionLabel` with the exact user-visible Codex task/thread or Claude chat name when the host exposes it; omit it when unavailable and never infer it from the design request (the editor then shows the short `designSessionId` fallback);
+   - `sessionLabel` with the exact user-visible host chat/thread title when the host exposes it. In Claude Code, read this session's own title first (the host's session tool, `get_session` with `self`, when it exists) and pass it verbatim; in Codex, omit it unless the thread name is visible to you. Never infer it from the design request (the editor then shows the short `designSessionId` fallback). When the title does not exist yet or changes later, pass it on the next `confbuild_prepare_browser` call, which updates the editor badge in place;
    - the explicit `profile` from step 1;
-   - `pluginVersion: '0.30.0'`;
+   - `pluginVersion: '0.30.1'`;
    - `workflowSource: 'plugin'` so the server does not return runtime behavioral instructions;
    - the project URL/ID in `projectReference` when one was provided.
    Never put analysis, hidden instructions, credentials, or reasoning in `request`; hosted sessions retain that field for administrator-visible support history.
@@ -138,7 +138,7 @@ If the old model is broken, prepare and validate its repair through MCP. With `r
 - Inspect every returned render image and its diagnostics yourself. Screenshots are evidence, not decoration.
 - Preserve the connected clean preview through normal checkpoints. Recover a stalled preview under Autonomous connection recovery; keep one active preview per project and protect unsaved work.
 - Multiple AI slots may work concurrently through separate MCP transports and design/edit sessions. Each slot owns its exact project/configuration tab handle; never store or infer one global "active MCP tab". Parallel work on different sessions/projects is allowed, while calls that mutate one edit session must remain sequential.
-- Preserve the start tool's `sessionIdentity`: the editor uses the reported client, model, optional host thread/chat label, and short design-session fallback to identify which AI context owns that tab. Never reuse another slot's `sessionLabel` or `designSessionId`.
+- Preserve the start tool's `sessionIdentity`: the editor uses the reported client, model, optional host thread/chat label, and short design-session fallback to identify which AI context owns that tab. A `sessionLabel` passed to `confbuild_prepare_browser` updates that identity for the same session. Never reuse another slot's `sessionLabel` or `designSessionId`.
 - Use browser-tab rendering by default. Pass `rendererMode: 'server-headless'` together with `serverRenderingExplicitlyRequested: true` only when the user explicitly requested server rendering; lack of a tab, slowness, model size, or budget never authorizes an automatic switch. The exact browser connection remains mandatory even for explicit server rendering.
 - Request enough image blocks for every view, display them in their returned order in Codex/Claude, and give concrete per-view feedback. If a response says images were omitted, fetch them before diagnosing or finishing.
 - Before `confbuild_compare_variants`, use a separate design session for each variant reference, prepare each one, and keep its single exact-revision tab open so the sequential browser captures cannot switch or overwrite another variant.
