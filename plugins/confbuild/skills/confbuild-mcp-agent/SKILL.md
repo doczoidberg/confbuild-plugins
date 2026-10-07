@@ -103,7 +103,7 @@ If the old model is broken, prepare and validate its repair through MCP. With `r
    - `client` and the exact public `model` identifier when exposed;
    - `sessionLabel` with the exact user-visible host chat/thread title when the host exposes it. In Claude Code, read this session's own title first (the host's session tool, `get_session` with `self`, when it exists) and pass it verbatim; in Codex, omit it unless the thread name is visible to you. Never infer it from the design request (the editor then shows the short `designSessionId` fallback). When the title does not exist yet or changes later, pass it on the next `confbuild_prepare_browser` call, which updates the editor badge in place;
    - the explicit `profile` from step 1;
-   - `pluginVersion: '0.30.1'`;
+   - `pluginVersion: '0.30.2'`;
    - `workflowSource: 'plugin'` so the server does not return runtime behavioral instructions;
    - the project URL/ID in `projectReference` when one was provided.
    Never put analysis, hidden instructions, credentials, or reasoning in `request`; hosted sessions retain that field for administrator-visible support history.
