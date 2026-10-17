@@ -2,7 +2,7 @@
 
 Author Sheet/script changes only through MCP. Use `confbuild_prepare_browser` for tab lifecycle, then return to MCP. Never author via editor controls, prompt submission, page evaluation or developer tools. Exercise INPUT buttons, project/VBA functions and registered actions through `confbuild_run_project_interaction`. One bounded UI mutation requires a structured unsupported-capability result and explicit user approval.
 
-Browser handoff is project-first. Enumerate and retain the exact project/configuration tab; keep one active preview per project. Follow SKILL.md Autonomous connection recovery for stalled tabs and replacement sessions. Five minutes triggers diagnosis, not a forced stop or renewed authorization. Preserve unsaved work, return to MCP after lifecycle recovery, and require exact-revision readiness before analysis. Semantic project authoring remains MCP-only.
+Browser handoff is project-first. Enumerate and retain the exact project/configuration tab; keep one active preview per project. Follow SKILL.md Autonomous connection recovery for stalled tabs and replacement sessions. Five minutes triggers diagnosis, not a forced stop or renewed authorization. MCP rebuilds discard unsaved tab work without asking; return to MCP after lifecycle recovery, and require exact-revision readiness before analysis. Semantic project authoring remains MCP-only.
 
 ## Loop invariant
 
