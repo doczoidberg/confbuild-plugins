@@ -77,6 +77,13 @@ Concept”, replace the dimensions with the values below, and leave the source
 untouched: …
 ```
 
+```text
+Set this project's unit to millimeters and show the cart, BOM, and save-configuration
+buttons in the published configurator. Do not touch lead routing or access settings.
+```
+
+The agent saves such settings with the next checkpoint (`projectPatch.unit` and `projectPatch.menuSettings`). It can set the project unit (`mm`, `cm`, `m`, `in`, `ft`) and the buttons and options of the published configurator: cart, save configuration, BOM, technical drawings, special and quote requests, share buttons, drawing on save, dark mode, and the BOM CSV profile. Lead routing (webhook, notification e-mail), access levels, bot protection, editable public copies, customer price control, and branding are refused; only you change them in the publish dialog. The settings are saved on your working project: a configurator that is already published shows them after you publish it again, and the agent tells you when that is needed.
+
 ### Review, repair, and recover
 
 ```text
@@ -136,10 +143,8 @@ You normally do not need to name tools. This table shows which natural-language 
 | `confbuild_start_design_session` | “Plan and build a configurable workbench with adjustable width, height, drawers, and material.” |
 | `confbuild_plan_sheet_topology` | “Plan this machine as Main Part plus reusable Drive Unit, Gantry, and Safety Guard subsheets; expose only each child’s own parameters.” |
 | `confbuild_get_prompt_sections` | “Use the machine profile and load only the geometry, assembly, and catalog rules needed for this design.” |
-| `confbuild_get_prompt_bundle` | “Before editing, show which versioned confBuild rule bundle applies to a structural-hall model.” |
-| `confbuild_list_prompt_resources` | “List the available confBuild prompt resources with their hashes so I can audit what the agent uses.” |
 | `confbuild_explain_row_type` | “Explain the exact header, example row, and placement rules for the bearing row type.” |
-| `confbuild_auth_status` | “Check whether my confBuild MCP connection is authenticated and tell me which account context is active.” |
+| `confbuild_auth_status` | “Check whether my confBuild MCP connection is authenticated, which account context is active, and whether rendering will use my browser tab or isolated server-side Chromium.” |
 | `confbuild_resolve_project_reference` | “Resolve this project/configuration URL and tell me whether it is owned, public, editable, and which saved configuration it targets.” |
 | `confbuild_create_project` | “Create a new private parametric conveyor project in my confBuild account.” |
 | `confbuild_clone_project` | “Clone this public template into my account and leave the source unchanged.” |
@@ -149,16 +154,14 @@ You normally do not need to name tools. This table shows which natural-language 
 | `confbuild_publish_checkpoint` | “Apply this coherent assembly stage, validate it once, save a rollback-protected revision, and update the connected editor tab.” |
 | `confbuild_validate_edit` | “Validate the pending edit for formula errors, bad references, duplicate IDs, invalid row types, and engine traps.” |
 | `confbuild_read_edit_workbook` | “Show me the current unsaved Frame sheet from the active edit session.” |
-| `confbuild_commit_edit` | “Save the validated workbook and project script atomically, require a rollback snapshot, and rename the project to ‘Conveyor 1400’.” |
+| `confbuild_commit_edit` | “Save the validated workbook and project script atomically, require a rollback snapshot, rename the project to ‘Conveyor 1400’, and set its unit to millimeters.” |
 | `confbuild_list_project_snapshots` | “List the newest rollback snapshots for this project with their dates and revisions.” |
 | `confbuild_restore_project_snapshot` | “Restore the selected workbook-and-script snapshot as a new revision, while preserving the current state as another snapshot.” |
 | `confbuild_diff_revisions` | “Compare this rollback revision with the current workbook and report changed rows plus a content-free script hash comparison.” |
 | `confbuild_discard_edit` | “Discard my uncommitted edit session; do not change the saved project.” |
-| `confbuild_browser_capabilities` | “Tell me whether rendering will use an open browser tab or isolated server-side Chromium and which capture features are available.” |
-| `confbuild_prepare_browser` | “Connect the exact clean project revision in my signed-in confBuild tab without editing through the browser UI.” |
-| `confbuild_render_project` | “Start a background render of front, right, top, and default views and give me the job ID.” |
+| `confbuild_prepare_browser` | “Connect the exact clean project revision in my signed-in confBuild tab before the first render, without editing through the browser UI.” |
 | `confbuild_get_render_result` | “Wait for that render, return the images and geometry diagnostics, and compare it with the previous iteration.” |
-| `confbuild_render_and_wait` | “Render this committed project now, wait up to 90 seconds, and return four review views with diagnostics.” |
+| `confbuild_render_and_wait` | “Render this committed project now, wait up to 90 seconds, and return four review views with diagnostics,” or with `waitMs: 0` “start a background render of front, right, top, and default views and give me the job ID.” |
 | `confbuild_inspect_outputs` | “Inspect these output IDs with ghosted context, isolation, an automatic center section, and x-ray before deciding the repair.” |
 | `confbuild_export_project` | “Export STEP plus BOM CSV,” “create the drawing PDF and flat-pattern DXF,” or “generate cost, quote, and purchasing outputs.” |
 | `confbuild_get_export_result` | “Wait for the export job and return the file inline when it is small enough.” |
@@ -167,7 +170,15 @@ You normally do not need to name tools. This table shows which natural-language 
 | `confbuild_get_variant_comparison_result` | “Wait for the comparison and show rankings, deltas, coverage, warnings, and per-variant failures.” |
 | `confbuild_find_rows` | “Find every row that contains ‘motor’ in the type and identifier columns without reading every sheet in full.” |
 | `confbuild_list_edit_sessions` | “List my open edit sessions and recover the one for this project after the previous client disconnected.” |
+| `confbuild_open_editor` | “Open my confBuild projects here so I can pick one in the embedded editor.” |
+| `confbuild_update_scene_settings` | “Make the sun lower, switch to a dark background, and hide the grid without touching the workbook.” |
+| `confbuild_run_project_interaction` | “Press the project’s Start button and show me the before and after images.” |
+| `confbuild_validate_animation` | “Check that the conveyor animation returns exactly to its rest pose and loops without a jump.” |
 | `confbuild_finish_design_session` | “Finish the design session only after the final commit and render; return the project link and remaining limitations.” |
+
+Version 0.32.0 removed four tools: `confbuild_render_project` (use `confbuild_render_and_wait` with `waitMs: 0`), `confbuild_get_prompt_bundle` (the bundle comes from `confbuild_start_design_session` and `confbuild_get_prompt_sections`), `confbuild_list_prompt_resources` (MCP `resources/list`), and `confbuild_browser_capabilities` (now part of `confbuild_auth_status`).
+
+The agent connects your browser tab only when it is needed: after creating, cloning, or restoring a project, before the first render, inspection, or interaction of a session while no tab is connected, and when a tool result asks for it. It does not reconnect after every saved stage, because the connected tab rebuilds each saved revision by itself. Opening an existing project for editing, cloning, and restoring a snapshot also work while no tab of that project is open; when one is open, the usual tab checks still apply. Large projects are read in windows of about 60,000 characters, so a single answer stays within the client's result limit.
 
 The [online prompt guide](https://confbuild.com/docs/confbuild-mcp-prompts/) contains the same catalog in a documentation-friendly format. Exact parameters, export formats, coverage rules, and safety limits are documented in the [MCP tool reference](https://confbuild.com/docs/confbuild-mcp-reference/).
 
